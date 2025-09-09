@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// HealthCheckHandler はヘルスチェックエンドポイントのハンドラーです
+// HealthCheckHandler handles the health check endpoint
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"status": "ok"}
 	w.WriteHeader(http.StatusOK)

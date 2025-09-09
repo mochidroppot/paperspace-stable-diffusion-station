@@ -10,7 +10,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // 開発用：本番では適切なオリジンチェックを実装
+		return true // Development only: implement proper origin check for production
 	},
 }
 
@@ -33,7 +33,7 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		logger.Debug("Received message: %s", string(message))
 
-		// エコーバック
+		// Echo back
 		err = conn.WriteMessage(messageType, message)
 		if err != nil {
 			logger.Error(err, "WebSocket write error")

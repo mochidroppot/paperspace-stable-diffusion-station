@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// DashboardHandler はダッシュボードエンドポイントのハンドラーです
+// DashboardHandler handles the dashboard endpoint
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Get system memory stats
 	var m runtime.MemStats

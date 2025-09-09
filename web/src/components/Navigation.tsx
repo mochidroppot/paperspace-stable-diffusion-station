@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import i18n from 'i18next'
 import { Badge } from './ui/badge'
 import { 
   LayoutDashboard, 
@@ -14,10 +16,11 @@ import {
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const { t } = useTranslation()
 
   const navigationItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { name: 'リソースインストーラー', icon: Download, href: '/installer' },
+    { name: t('navigation.dashboard'), icon: LayoutDashboard, href: '/dashboard' },
+    { name: t('navigation.resourceInstaller'), icon: Download, href: '/installer' },
     { name: 'Users', icon: Users, href: '#', active: false },
     { name: 'Settings', icon: Settings, href: '#', active: false },
   ]
@@ -55,6 +58,30 @@ const Navigation = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Language Switcher */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => i18n.changeLanguage('en')}
+                className={`px-2 py-1 text-sm rounded ${
+                  i18n.language === 'en' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => i18n.changeLanguage('ja')}
+                className={`px-2 py-1 text-sm rounded ${
+                  i18n.language === 'ja' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                日本語
+              </button>
+            </div>
+
             {/* Notifications */}
             <button className="relative p-2 text-gray-400 hover:text-gray-500">
               <Bell className="h-5 w-5" />

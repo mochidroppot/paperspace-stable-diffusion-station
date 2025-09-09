@@ -1,0 +1,86 @@
+{
+  "navigation": {
+    "dashboard": "ダッシュボード",
+    "resourceInstaller": "リソースインストーラー"
+  },
+  "resourceInstaller": {
+    "title": "リソースインストーラー",
+    "description": "モデル、拡張機能、スクリプトをインストールします",
+    "resourceSelection": {
+      "title": "リソース選択",
+      "description": "インストールするリソースを選択してください",
+      "presetResources": "プリセットリソース",
+      "customUrl": "カスタムURL",
+      "urlPlaceholder": "リソースURLを入力",
+      "namePlaceholder": "リソース名を入力",
+      "descriptionPlaceholder": "説明を入力（任意）"
+    },
+    "installDestination": {
+      "title": "インストール先選択",
+      "description": "リソースのインストール先を選択してください"
+    },
+    "installButton": "インストール開始",
+    "installQueue": {
+      "title": "インストールキュー",
+      "description": "進行中のインストールタスク",
+      "progress": "進行状況",
+      "startTime": "開始時刻",
+      "duration": "所要時間"
+    },
+    "resources": {
+      "stableDiffusion": {
+        "name": "Stable Diffusion XL",
+        "description": "高品質な画像生成モデル"
+      },
+      "controlNet": {
+        "name": "ControlNet拡張機能",
+        "description": "画像の構造を制御する拡張機能"
+      },
+      "faceRestore": {
+        "name": "顔修復スクリプト",
+        "description": "顔の修復を行うスクリプト"
+      },
+      "animeModel": {
+        "name": "アニメ風モデル",
+        "description": "アニメ風画像生成モデル"
+      }
+    },
+    "destinations": {
+      "models": "モデル",
+      "extensions": "拡張機能",
+      "scripts": "スクリプト",
+      "custom": "カスタム"
+    },
+    "status": {
+      "pending": "待機中",
+      "downloading": "ダウンロード中",
+      "installing": "インストール中",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル済み"
+    },
+    "messages": {
+      "installFailed": "インストールの開始に失敗しました",
+      "cancelFailed": "タスクのキャンセルに失敗しました",
+      "noResourceSelected": "リソースを選択してください",
+      "noDestinationSelected": "インストール先を選択してください",
+      "invalidUrl": "有効なURLを入力してください"
+    }
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "stats": {
+      "totalUsers": "総ユーザー数",
+      "activeConnections": "アクティブ接続数",
+      "systemUptime": "システム稼働時間",
+      "memoryUsage": "メモリ使用率",
+      "cpuUsage": "CPU使用率",
+      "diskUsage": "ディスク使用率",
+      "requestsPerMinute": "1分あたりのリクエスト数",
+      "errorRate": "エラー率"
+    },
+    "recentActivity": {
+      "title": "最近のアクティビティ"
+    }
+  }
+}

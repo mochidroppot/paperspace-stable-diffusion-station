@@ -5,18 +5,18 @@ import (
 	"paperspace-stable-diffusion-station/internal/handler"
 )
 
-// NewRouter は新しいAPIルーターを作成し、ルートを設定します。
+// NewRouter creates a new API router and sets up routes
 func NewRouter() http.Handler {
 	router := http.NewServeMux()
 
-	// ヘルスチェック
+	// Health check
 	router.HandleFunc("GET /health", CORS(handler.HealthCheckHandler))
 
-	// ダッシュボード
+	// Dashboard
 	router.HandleFunc("GET /api/dashboard", CORS(handler.DashboardHandler))
 	router.HandleFunc("OPTIONS /api/dashboard", CORS(handler.DashboardHandler))
 
-	// リソースインストーラー
+	// Resource installer
 	router.HandleFunc("POST /installer/install", CORS(handler.InstallHandler))
 	router.HandleFunc("OPTIONS /installer/install", CORS(handler.InstallHandler))
 	router.HandleFunc("GET /installer/status", CORS(handler.GetInstallStatusHandler))

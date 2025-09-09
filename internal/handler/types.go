@@ -2,7 +2,7 @@ package handler
 
 import "time"
 
-// ダッシュボード関連のデータ構造
+// Dashboard-related data structures
 type DashboardStats struct {
 	TotalUsers        int     `json:"totalUsers"`
 	ActiveConnections int     `json:"activeConnections"`
@@ -26,7 +26,7 @@ type DashboardResponse struct {
 	RecentActivity []RecentActivity `json:"recentActivity"`
 }
 
-// リソースインストール関連のデータ構造
+// Resource installation-related data structures
 type Resource struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`

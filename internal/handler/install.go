@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-// インストールタスクの管理用グローバル変数
+// Global variables for managing installation tasks
 var installTasks = make(map[string]*InstallTask)
 var installTasksMutex sync.RWMutex
 
-// InstallHandler はリソースインストールエンドポイントのハンドラーです
+// InstallHandler handles the resource installation endpoint
 func InstallHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
@@ -28,7 +28,7 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// バリデーション
+	// Validation
 	if req.Resource.Name == "" {
 		http.Error(w, "Resource name is required", http.StatusBadRequest)
 		return
@@ -38,10 +38,10 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// タスクIDを生成
+	// Generate task ID
 	taskID := fmt.Sprintf("task_%d", time.Now().UnixNano())
 
-	// インストールタスクを作成
+	// Create installation task
 	task := &InstallTask{
 		ID:          taskID,
 		Resource:    req.Resource,
@@ -51,15 +51,15 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 		StartTime:   time.Now(),
 	}
 
-	// タスクをマップに保存
+	// Store task in map
 	installTasksMutex.Lock()
 	installTasks[taskID] = task
 	installTasksMutex.Unlock()
 
-	// 非同期でインストール処理を開始
+	// Start installation process asynchronously
 	go processInstallation(task)
 
-	// レスポンスを返す
+	// Return response
 	response := InstallResponse{
 		TaskID:  taskID,
 		Status:  "pending",
@@ -70,13 +70,13 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// processInstallation はインストール処理を実行します
+// processInstallation executes the installation process
 func processInstallation(task *InstallTask) {
 	installTasksMutex.Lock()
 	task.Status = "downloading"
 	installTasksMutex.Unlock()
 
-	// インストール先ディレクトリを作成
+	// Create installation directory
 	installPath := filepath.Join("./data", task.Destination.Path)
 	if err := os.MkdirAll(installPath, 0755); err != nil {
 		installTasksMutex.Lock()
@@ -88,9 +88,9 @@ func processInstallation(task *InstallTask) {
 		return
 	}
 
-	// ダウンロード処理をシミュレート
+	// Simulate download process
 	for i := 0; i <= 100; i += 10 {
-		time.Sleep(500 * time.Millisecond) // 0.5秒待機
+		time.Sleep(500 * time.Millisecond) // Wait 0.5 seconds
 
 		installTasksMutex.Lock()
 		task.Progress = float64(i)
@@ -100,7 +100,7 @@ func processInstallation(task *InstallTask) {
 		installTasksMutex.Unlock()
 	}
 
-	// インストール完了
+	// Installation completed
 	installTasksMutex.Lock()
 	task.Status = "completed"
 	task.Progress = 100
@@ -109,7 +109,7 @@ func processInstallation(task *InstallTask) {
 	installTasksMutex.Unlock()
 }
 
-// GetInstallStatusHandler はインストールタスクの状態を取得するハンドラーです
+// GetInstallStatusHandler handles getting the status of installation tasks
 func GetInstallStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "GET" {
@@ -117,7 +117,7 @@ func GetInstallStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// クエリパラメータからタスクIDを取得
+	// Get task ID from query parameters
 	taskID := r.URL.Query().Get("taskId")
 	if taskID == "" {
 		http.Error(w, "taskId parameter is required", http.StatusBadRequest)
@@ -137,7 +137,7 @@ func GetInstallStatusHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
-// CancelInstallHandler はインストールタスクをキャンセルするハンドラーです
+// CancelInstallHandler handles cancelling installation tasks
 func CancelInstallHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
@@ -176,7 +176,7 @@ func CancelInstallHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// GetAllInstallTasksHandler は全インストールタスクを取得するハンドラーです
+// GetAllInstallTasksHandler handles getting all installation tasks
 func GetAllInstallTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "GET" {

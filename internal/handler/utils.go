@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-// システム開始時間（グローバル変数）
+// Global variable for system start time
 var startTime = time.Now()
 
-// アップタイムをフォーマットする関数
+// formatUptime formats the uptime duration into a human-readable string
 func formatUptime(d time.Duration) string {
 	days := int(d.Hours() / 24)
 	hours := int(d.Hours()) % 24
@@ -23,7 +23,7 @@ func formatUptime(d time.Duration) string {
 	}
 }
 
-// システム開始時間を取得
+// GetStartTime returns the system start time
 func GetStartTime() time.Time {
 	return startTime
 }

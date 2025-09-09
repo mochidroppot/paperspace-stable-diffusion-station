@@ -1,0 +1,86 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "resourceInstaller": "Resource Installer"
+  },
+  "resourceInstaller": {
+    "title": "Resource Installer",
+    "description": "Install models, extensions, and scripts",
+    "resourceSelection": {
+      "title": "Resource Selection",
+      "description": "Select the resource to install",
+      "presetResources": "Preset Resources",
+      "customUrl": "Custom URL",
+      "urlPlaceholder": "Enter resource URL",
+      "namePlaceholder": "Enter resource name",
+      "descriptionPlaceholder": "Enter description (optional)"
+    },
+    "installDestination": {
+      "title": "Installation Destination",
+      "description": "Select the installation destination for the resource"
+    },
+    "installButton": "Start Installation",
+    "installQueue": {
+      "title": "Installation Queue",
+      "description": "Ongoing installation tasks",
+      "progress": "Progress",
+      "startTime": "Start Time",
+      "duration": "Duration"
+    },
+    "resources": {
+      "stableDiffusion": {
+        "name": "Stable Diffusion XL",
+        "description": "High-quality image generation model"
+      },
+      "controlNet": {
+        "name": "ControlNet Extension",
+        "description": "Extension for controlling image structure"
+      },
+      "faceRestore": {
+        "name": "Face Restoration Script",
+        "description": "Script for face restoration"
+      },
+      "animeModel": {
+        "name": "Anime Style Model",
+        "description": "Anime-style image generation model"
+      }
+    },
+    "destinations": {
+      "models": "Models",
+      "extensions": "Extensions",
+      "scripts": "Scripts",
+      "custom": "Custom"
+    },
+    "status": {
+      "pending": "Pending",
+      "downloading": "Downloading",
+      "installing": "Installing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "messages": {
+      "installFailed": "Failed to start installation",
+      "cancelFailed": "Failed to cancel task",
+      "noResourceSelected": "Please select a resource",
+      "noDestinationSelected": "Please select a destination",
+      "invalidUrl": "Please enter a valid URL"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeConnections": "Active Connections",
+      "systemUptime": "System Uptime",
+      "memoryUsage": "Memory Usage",
+      "cpuUsage": "CPU Usage",
+      "diskUsage": "Disk Usage",
+      "requestsPerMinute": "Requests per Minute",
+      "errorRate": "Error Rate"
+    },
+    "recentActivity": {
+      "title": "Recent Activity"
+    }
+  }
+}

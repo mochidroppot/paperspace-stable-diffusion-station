@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
@@ -45,6 +46,7 @@ interface InstallTask {
 }
 
 const ResourceInstaller = () => {
+  const { t } = useTranslation()
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [selectedDestination, setSelectedDestination] = useState<InstallDestination | null>(null)
   const [customUrl, setCustomUrl] = useState('')
@@ -71,61 +73,61 @@ const ResourceInstaller = () => {
     fetchExistingTasks()
   }, [])
 
-  // プリセットリソース
+  // Preset resources
   const presetResources: Resource[] = [
     {
       id: '1',
-      name: 'Stable Diffusion XL Base',
+      name: t('resourceInstaller.resources.stableDiffusion.name'),
       type: 'model',
       size: '6.6 GB',
-      description: '高品質な画像生成モデル'
+      description: t('resourceInstaller.resources.stableDiffusion.description')
     },
     {
       id: '2',
-      name: 'ControlNet Extension',
+      name: t('resourceInstaller.resources.controlNet.name'),
       type: 'extension',
       size: '2.1 GB',
-      description: '画像の構造を制御する拡張機能'
+      description: t('resourceInstaller.resources.controlNet.description')
     },
     {
       id: '3',
-      name: 'Face Restoration Script',
+      name: t('resourceInstaller.resources.faceRestore.name'),
       type: 'script',
       size: '150 MB',
-      description: '顔の修復を行うスクリプト'
+      description: t('resourceInstaller.resources.faceRestore.description')
     },
     {
       id: '4',
-      name: 'Anime Style Model',
+      name: t('resourceInstaller.resources.animeModel.name'),
       type: 'model',
       size: '4.2 GB',
-      description: 'アニメ風画像生成モデル'
+      description: t('resourceInstaller.resources.animeModel.description')
     }
   ]
 
-  // インストール先
+  // Installation destinations
   const installDestinations: InstallDestination[] = [
     {
       id: '1',
-      name: 'Models Directory',
+      name: t('resourceInstaller.destinations.models'),
       path: '/models/stable-diffusion',
       type: 'models'
     },
     {
       id: '2',
-      name: 'Extensions Directory',
+      name: t('resourceInstaller.destinations.extensions'),
       path: '/extensions',
       type: 'extensions'
     },
     {
       id: '3',
-      name: 'Scripts Directory',
+      name: t('resourceInstaller.destinations.scripts'),
       path: '/scripts',
       type: 'scripts'
     },
     {
       id: '4',
-      name: 'Custom Directory',
+      name: t('resourceInstaller.destinations.custom'),
       path: '/custom',
       type: 'custom'
     }
@@ -191,7 +193,7 @@ const ResourceInstaller = () => {
       startPolling(result.taskId)
     } catch (error) {
       console.error('Installation failed:', error)
-      alert('インストールの開始に失敗しました')
+      alert(t('resourceInstaller.messages.installFailed'))
     }
   }
 
@@ -253,7 +255,7 @@ const ResourceInstaller = () => {
       ))
     } catch (error) {
       console.error('Failed to cancel task:', error)
-      alert('タスクのキャンセルに失敗しました')
+      alert(t('resourceInstaller.messages.cancelFailed'))
     }
   }
 
@@ -317,24 +319,24 @@ const ResourceInstaller = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">リソースインストーラー</h1>
-            <p className="text-gray-600 mt-2">モデル、拡張機能、スクリプトをインストールします</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('resourceInstaller.title')}</h1>
+            <p className="text-gray-600 mt-2">{t('resourceInstaller.description')}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* リソース選択 */}
+            {/* Resource Selection */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  リソース選択
+                  {t('resourceInstaller.resourceSelection.title')}
                 </CardTitle>
-                <CardDescription>インストールするリソースを選択してください</CardDescription>
+                <CardDescription>{t('resourceInstaller.resourceSelection.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* プリセットリソース */}
+                {/* Preset Resources */}
                 <div>
-                  <h3 className="text-sm font-medium mb-3">プリセットリソース</h3>
+                  <h3 className="text-sm font-medium mb-3">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
                   <div className="space-y-2">
                     {presetResources.map((resource) => (
                       <div
@@ -363,14 +365,14 @@ const ResourceInstaller = () => {
                   </div>
                 </div>
 
-                {/* カスタムURL */}
+                {/* Custom URL */}
                 <div>
-                  <h3 className="text-sm font-medium mb-3">カスタムURL</h3>
+                  <h3 className="text-sm font-medium mb-3">{t('resourceInstaller.resourceSelection.customUrl')}</h3>
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <input
                         type="url"
-                        placeholder="https://example.com/resource.zip"
+                        placeholder={t('resourceInstaller.resourceSelection.urlPlaceholder')}
                         value={customUrl}
                         onChange={(e) => handleCustomUrlChange(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -382,14 +384,14 @@ const ResourceInstaller = () => {
               </CardContent>
             </Card>
 
-            {/* インストール先選択 */}
+            {/* Installation Destination Selection */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  インストール先選択
+                  {t('resourceInstaller.installDestination.title')}
                 </CardTitle>
-                <CardDescription>リソースのインストール先を選択してください</CardDescription>
+                <CardDescription>{t('resourceInstaller.installDestination.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -417,7 +419,7 @@ const ResourceInstaller = () => {
             </Card>
           </div>
 
-          {/* インストールボタン */}
+          {/* Install Button */}
           <div className="mt-6 flex justify-center">
             <Button
               onClick={handleInstall}
@@ -425,16 +427,16 @@ const ResourceInstaller = () => {
               className="px-8 py-3"
             >
               <Play className="h-4 w-4 mr-2" />
-              インストール開始
+              {t('resourceInstaller.installButton')}
             </Button>
           </div>
 
-          {/* インストールキュー */}
+          {/* Installation Queue */}
           {installTasks.length > 0 && (
             <Card className="mt-8">
               <CardHeader>
-                <CardTitle>インストールキュー</CardTitle>
-                <CardDescription>進行中のインストールタスク</CardDescription>
+                <CardTitle>{t('resourceInstaller.installQueue.title')}</CardTitle>
+                <CardDescription>{t('resourceInstaller.installQueue.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -477,7 +479,7 @@ const ResourceInstaller = () => {
                       {(task.status === 'downloading' || task.status === 'installing') && (
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span>進行状況</span>
+                            <span>{t('resourceInstaller.installQueue.progress')}</span>
                             <span>{Math.round(task.progress)}%</span>
                           </div>
                           <Progress value={task.progress} className="h-2" />
@@ -486,9 +488,9 @@ const ResourceInstaller = () => {
                       
                       {task.startTime && (
                         <div className="text-xs text-gray-500 mt-2">
-                          開始時刻: {task.startTime.toLocaleTimeString()}
+                          {t('resourceInstaller.installQueue.startTime')}: {task.startTime.toLocaleTimeString()}
                           {task.endTime && (
-                            <span> • 所要時間: {formatDuration(task.startTime, task.endTime)}</span>
+                            <span> • {t('resourceInstaller.installQueue.duration')}: {formatDuration(task.startTime, task.endTime)}</span>
                           )}
                         </div>
                       )}
