@@ -11,6 +11,10 @@
       "description": "インストールするリソースを選択してください",
       "presetResources": "プリセットリソース",
       "customUrl": "カスタムURL",
+      "orUseCustom": "または、カスタムURLを使用",
+      "useCustomUrl": "カスタムURLを使用",
+      "customModeActive": "カスタムモード有効",
+      "customModeDescription": "カスタムリソースの詳細を入力し、インストール先を選択してください",
       "urlPlaceholder": "リソースURLを入力",
       "namePlaceholder": "リソース名を入力",
       "descriptionPlaceholder": "説明を入力（任意）"

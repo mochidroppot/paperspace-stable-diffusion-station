@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Badge } from './ui/badge'
-import { Progress } from './ui/progress'
-import { Button } from './ui/button'
-import Navigation from './Navigation'
-import { 
-  Download, 
-  Package, 
-  FolderOpen, 
-  Link, 
-  Play, 
-  X, 
-  CheckCircle, 
-  Clock,
+import {
   AlertCircle,
-  Trash2
+  CheckCircle,
+  Clock,
+  Download,
+  FolderOpen,
+  Package,
+  Play,
+  Plus,
+  Trash2,
+  X
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import Navigation from './Navigation'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Combobox } from './ui/combobox'
+import { Progress } from './ui/progress'
 
 interface Resource {
   id: string
@@ -49,10 +50,13 @@ const ResourceInstaller = () => {
   const { t } = useTranslation()
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [selectedDestination, setSelectedDestination] = useState<InstallDestination | null>(null)
-  const [customUrl, setCustomUrl] = useState('')
+  const [resourceUrl, setResourceUrl] = useState('')
+  const [resourceName, setResourceName] = useState('')
+  const [resourceDescription, setResourceDescription] = useState('')
+  const [isCustomMode, setIsCustomMode] = useState(false)
   const [installTasks, setInstallTasks] = useState<InstallTask[]>([])
 
-  // コンポーネントマウント時に既存のタスクを取得
+  // Component mount: fetch existing tasks
   useEffect(() => {
     const fetchExistingTasks = async () => {
       try {
@@ -135,19 +139,54 @@ const ResourceInstaller = () => {
 
   const handleResourceSelect = (resource: Resource) => {
     setSelectedResource(resource)
-    setCustomUrl('')
+    setIsCustomMode(false)
+
+    // Auto-fill resource details from preset
+    setResourceUrl(resource.url || '')
+    setResourceName(resource.name)
+    setResourceDescription(resource.description || '')
+
+    // Auto-select destination based on resource type
+    const destination = installDestinations.find(dest => dest.type === resource.type + 's')
+    if (destination) {
+      setSelectedDestination(destination)
+    }
   }
 
-  const handleCustomUrlChange = (url: string) => {
-    setCustomUrl(url)
-    if (url.trim()) {
+  const handleCustomModeToggle = () => {
+    setIsCustomMode(true)
+    setSelectedResource(null)
+    setResourceUrl('')
+    setResourceName('')
+    setResourceDescription('')
+    setSelectedDestination(null)
+  }
+
+  const handleResourceUrlChange = (url: string) => {
+    setResourceUrl(url)
+    updateCustomResource()
+  }
+
+  const handleResourceNameChange = (name: string) => {
+    setResourceName(name)
+    updateCustomResource()
+  }
+
+  const handleResourceDescriptionChange = (description: string) => {
+    setResourceDescription(description)
+    updateCustomResource()
+  }
+
+  const updateCustomResource = () => {
+    if (isCustomMode && resourceUrl.trim() && resourceName.trim()) {
       setSelectedResource({
         id: 'custom',
-        name: 'Custom Resource',
+        name: resourceName.trim(),
         type: 'custom',
-        url: url.trim()
+        url: resourceUrl.trim(),
+        description: resourceDescription.trim()
       })
-    } else {
+    } else if (isCustomMode) {
       setSelectedResource(null)
     }
   }
@@ -157,7 +196,18 @@ const ResourceInstaller = () => {
   }
 
   const handleInstall = async () => {
-    if (!selectedResource || !selectedDestination) return
+    if (!selectedResource) return
+
+    // For preset resources, auto-determine destination
+    let destination = selectedDestination
+    if (!isCustomMode && !destination) {
+      destination = installDestinations.find(dest => dest.type === selectedResource.type + 's') || null
+    }
+
+    if (!destination) {
+      alert(t('resourceInstaller.messages.noDestinationSelected'))
+      return
+    }
 
     try {
       const response = await fetch('http://localhost:8080/api/installer/install', {
@@ -167,7 +217,7 @@ const ResourceInstaller = () => {
         },
         body: JSON.stringify({
           resource: selectedResource,
-          destination: selectedDestination
+          destination: destination
         })
       })
 
@@ -176,20 +226,20 @@ const ResourceInstaller = () => {
       }
 
       const result = await response.json()
-      
-      // 新しいタスクを追加
+
+      // Add new task
       const newTask: InstallTask = {
         id: result.taskId,
         resource: selectedResource,
-        destination: selectedDestination,
+        destination: destination,
         status: 'pending',
         progress: 0,
         startTime: new Date()
       }
 
       setInstallTasks(prev => [...prev, newTask])
-      
-      // ポーリングを開始
+
+      // Start polling
       startPolling(result.taskId)
     } catch (error) {
       console.error('Installation failed:', error)
@@ -204,18 +254,18 @@ const ResourceInstaller = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch task status')
         }
-        
+
         const taskData = await response.json()
-        
-        setInstallTasks(prev => prev.map(task => 
-          task.id === taskId 
+
+        setInstallTasks(prev => prev.map(task =>
+          task.id === taskId
             ? {
-                ...task,
-                status: taskData.status,
-                progress: taskData.progress,
-                error: taskData.error,
-                endTime: taskData.endTime ? new Date(taskData.endTime) : undefined
-              }
+              ...task,
+              status: taskData.status,
+              progress: taskData.progress,
+              error: taskData.error,
+              endTime: taskData.endTime ? new Date(taskData.endTime) : undefined
+            }
             : task
         ))
 
@@ -244,13 +294,13 @@ const ResourceInstaller = () => {
         throw new Error('Failed to cancel task')
       }
 
-      setInstallTasks(prev => prev.map(task => 
-        task.id === taskId 
-          ? { 
-              ...task, 
-              status: 'cancelled' as const,
-              endTime: new Date()
-            }
+      setInstallTasks(prev => prev.map(task =>
+        task.id === taskId
+          ? {
+            ...task,
+            status: 'cancelled' as const,
+            endTime: new Date()
+          }
           : task
       ))
     } catch (error) {
@@ -305,7 +355,7 @@ const ResourceInstaller = () => {
     const seconds = Math.floor(diff / 1000)
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
-    
+
     if (minutes > 0) {
       return `${minutes}m ${remainingSeconds}s`
     }
@@ -324,7 +374,7 @@ const ResourceInstaller = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Resource Selection */}
+            {/* Left Panel - Resource Selection */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -341,11 +391,10 @@ const ResourceInstaller = () => {
                     {presetResources.map((resource) => (
                       <div
                         key={resource.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          selectedResource?.id === resource.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedResource?.id === resource.id && !isCustomMode
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
                         onClick={() => handleResourceSelect(resource)}
                       >
                         <div className="flex items-center justify-between">
@@ -365,56 +414,134 @@ const ResourceInstaller = () => {
                   </div>
                 </div>
 
-                {/* Custom URL */}
-                <div>
-                  <h3 className="text-sm font-medium mb-3">{t('resourceInstaller.resourceSelection.customUrl')}</h3>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="url"
-                        placeholder={t('resourceInstaller.resourceSelection.urlPlaceholder')}
-                        value={customUrl}
-                        onChange={(e) => handleCustomUrlChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <Link className="h-5 w-5 text-gray-400 mt-2" />
+                {/* Custom Mode Toggle */}
+                <div className="pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-3">
+                      {t('resourceInstaller.resourceSelection.orUseCustom')}
+                    </p>
+                    <Button
+                      variant={isCustomMode ? "default" : "outline"}
+                      onClick={handleCustomModeToggle}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {isCustomMode ? t('resourceInstaller.resourceSelection.customModeActive') : t('resourceInstaller.resourceSelection.useCustomUrl')}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Installation Destination Selection */}
+            {/* Right Panel - Resource Details & Installation Destination */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  {t('resourceInstaller.installDestination.title')}
+                  {isCustomMode ? t('resourceInstaller.resourceSelection.customUrl') : t('resourceInstaller.installDestination.title')}
                 </CardTitle>
-                <CardDescription>{t('resourceInstaller.installDestination.description')}</CardDescription>
+                <CardDescription>
+                  {isCustomMode ? t('resourceInstaller.resourceSelection.customModeDescription') : t('resourceInstaller.installDestination.description')}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {installDestinations.map((destination) => (
-                    <div
-                      key={destination.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedDestination?.id === destination.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => handleDestinationSelect(destination)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{destination.name}</h4>
-                          <p className="text-sm text-gray-600">{destination.path}</p>
-                        </div>
-                        <Badge variant="outline">{destination.type}</Badge>
-                      </div>
-                    </div>
-                  ))}
+              <CardContent className="space-y-4">
+                {/* Resource Details */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.urlPlaceholder')}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/resource.zip"
+                      value={resourceUrl}
+                      onChange={(e) => handleResourceUrlChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.namePlaceholder')}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Resource Name"
+                      value={resourceName}
+                      onChange={(e) => handleResourceNameChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.descriptionPlaceholder')}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Optional description"
+                      value={resourceDescription}
+                      onChange={(e) => handleResourceDescriptionChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
                 </div>
+
+                {/* Installation Destination Selection - Only for Custom Mode */}
+                {isCustomMode && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('resourceInstaller.installDestination.title')}
+                    </label>
+                    <Combobox
+                      options={installDestinations.map(dest => ({
+                        value: dest.id,
+                        label: dest.name,
+                        disabled: false
+                      }))}
+                      value={selectedDestination?.id || ''}
+                      onValueChange={(value) => {
+                        const destination = installDestinations.find(dest => dest.id === value)
+                        if (destination) {
+                          handleDestinationSelect(destination)
+                        }
+                      }}
+                      placeholder={t('resourceInstaller.installDestination.description')}
+                      searchPlaceholder="Search destinations..."
+                      emptyText="No destinations found."
+                      width="w-full"
+                    />
+                    {selectedDestination && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{selectedDestination.name}</h4>
+                            <p className="text-sm text-gray-600">{selectedDestination.path}</p>
+                          </div>
+                          <Badge variant="outline">{selectedDestination.type}</Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Preset Resource Destination Display */}
+                {!isCustomMode && selectedResource && selectedDestination && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Auto-selected Destination</h4>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">{selectedDestination.name}</h4>
+                        <p className="text-sm text-gray-600">{selectedDestination.path}</p>
+                      </div>
+                      <Badge variant="outline">{selectedDestination.type}</Badge>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -423,7 +550,7 @@ const ResourceInstaller = () => {
           <div className="mt-6 flex justify-center">
             <Button
               onClick={handleInstall}
-              disabled={!selectedResource || !selectedDestination}
+              disabled={!selectedResource || (isCustomMode && !selectedDestination)}
               className="px-8 py-3"
             >
               <Play className="h-4 w-4 mr-2" />
@@ -475,7 +602,7 @@ const ResourceInstaller = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       {(task.status === 'downloading' || task.status === 'installing') && (
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
@@ -485,7 +612,7 @@ const ResourceInstaller = () => {
                           <Progress value={task.progress} className="h-2" />
                         </div>
                       )}
-                      
+
                       {task.startTime && (
                         <div className="text-xs text-gray-500 mt-2">
                           {t('resourceInstaller.installQueue.startTime')}: {task.startTime.toLocaleTimeString()}

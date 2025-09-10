@@ -1,17 +1,18 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import i18n from 'i18next'
-import { Badge } from './ui/badge'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
-  Bell, 
+import {
+  Bell,
+  Download,
+  LayoutDashboard,
   Menu,
-  X,
-  Download
+  Settings,
+  Users,
+  X
 } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useLocation } from 'react-router-dom'
+import { Badge } from './ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -33,7 +34,7 @@ const Navigation = () => {
             <div className="flex-shrink-0 flex items-center">
               <h1 className="text-xl font-bold text-gray-900">System Dashboard</h1>
             </div>
-            
+
             {/* Desktop Navigation */}
             <div className="hidden md:ml-6 md:flex md:space-x-8">
               {navigationItems.map((item) => {
@@ -43,11 +44,10 @@ const Navigation = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    }`}
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive
+                      ? 'border-blue-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
                     {item.name}
@@ -59,34 +59,42 @@ const Navigation = () => {
 
           <div className="flex items-center space-x-4">
             {/* Language Switcher */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => i18n.changeLanguage('en')}
-                className={`px-2 py-1 text-sm rounded ${
-                  i18n.language === 'en' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => i18n.changeLanguage('ja')}
-                className={`px-2 py-1 text-sm rounded ${
-                  i18n.language === 'ja' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                日本語
-              </button>
+            <div className="flex items-center">
+              <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">
+                        {i18n.language === 'en' ? '🇺🇸' : '🇯🇵'}
+                      </span>
+                      <span className="text-sm">
+                        {i18n.language === 'en' ? 'English' : '日本語'}
+                      </span>
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">🇺🇸</span>
+                      <span>English</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ja">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">🇯🇵</span>
+                      <span>日本語</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Notifications */}
             <button className="relative p-2 text-gray-400 hover:text-gray-500">
               <Bell className="h-5 w-5" />
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
               >
                 3
@@ -131,11 +139,10 @@ const Navigation = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                      isActive
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
-                        : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                    }`}
+                    className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive
+                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                      }`}
                   >
                     <div className="flex items-center">
                       <Icon className="h-4 w-4 mr-3" />

@@ -11,6 +11,10 @@
       "description": "Select the resource to install",
       "presetResources": "Preset Resources",
       "customUrl": "Custom URL",
+      "orUseCustom": "Or use a custom URL",
+      "useCustomUrl": "Use Custom URL",
+      "customModeActive": "Custom Mode Active",
+      "customModeDescription": "Enter custom resource details and select installation destination",
       "urlPlaceholder": "Enter resource URL",
       "namePlaceholder": "Enter resource name",
       "descriptionPlaceholder": "Enter description (optional)"
