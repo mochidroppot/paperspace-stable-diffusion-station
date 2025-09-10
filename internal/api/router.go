@@ -21,5 +21,8 @@ func NewRouter() http.Handler {
 	router.HandleFunc("POST /installer/cancel", handler.CancelInstallHandler)
 	router.HandleFunc("GET /installer/tasks", handler.GetAllInstallTasksHandler)
 
+	// Preset resources
+	router.HandleFunc("GET /api/preset-resources", handler.GetPresetResourcesHandler)
+
 	return router
 }

@@ -71,7 +71,9 @@
       "invalidUrl": "有効なURLを入力してください",
       "installStarted": "{{resourceName}}のインストールを開始しました",
       "installCompleted": "{{resourceName}}のインストールが完了しました",
-      "installCancelled": "インストールがキャンセルされました"
+      "installCancelled": "インストールがキャンセルされました",
+      "fetchResourcesFailed": "推奨リソースの取得に失敗しました。ページを再読み込みしてください。",
+      "errorOccurred": "エラーが発生しました"
     }
   },
   "dashboard": {

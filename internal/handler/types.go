@@ -64,3 +64,24 @@ type InstallTask struct {
 	StartTime   time.Time          `json:"startTime"`
 	EndTime     *time.Time         `json:"endTime,omitempty"`
 }
+
+// Preset resource data structures
+type PresetResource struct {
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Type          string   `json:"type"` // model, extension, script
+	Size          string   `json:"size"`
+	Description   string   `json:"description"`
+	Category      string   `json:"category,omitempty"`
+	Tags          []string `json:"tags,omitempty"`
+	Version       string   `json:"version,omitempty"`
+	Author        string   `json:"author,omitempty"`
+	License       string   `json:"license,omitempty"`
+	Requirements  []string `json:"requirements,omitempty"`
+	Compatibility []string `json:"compatibility,omitempty"`
+	URL           string   `json:"url,omitempty"`
+}
+
+type PresetResourcesResponse struct {
+	Resources []PresetResource `json:"resources"`
+}

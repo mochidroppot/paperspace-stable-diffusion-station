@@ -13,8 +13,9 @@ import {
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { apiFetch } from '../lib/api'
+import { apiFetch, fetchPresetResources, type PresetResource } from '../lib/api'
 import Navigation from './Navigation'
+import { Alert, AlertDescription, AlertTitle } from './ui/alert'
 import { Badge } from './ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Combobox } from './ui/combobox'
@@ -57,60 +58,50 @@ const ResourceInstaller = () => {
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [installTasks, setInstallTasks] = useState<InstallTask[]>([])
   const [showResourceForm, setShowResourceForm] = useState(false)
+  const [presetResources, setPresetResources] = useState<PresetResource[]>([])
+  const [isLoadingResources, setIsLoadingResources] = useState(true)
+  const [resourcesError, setResourcesError] = useState<string | null>(null)
   // const customUrl = resourceUrl // Used in JSX conditionally
 
-  // Component mount: fetch existing tasks
+  // Component mount: fetch existing tasks and preset resources
   useEffect(() => {
-    const fetchExistingTasks = async () => {
+    const fetchData = async () => {
       try {
-        const response = await apiFetch('/installer/tasks')
-        if (response.ok) {
-          const tasks = await response.json()
+        // Fetch existing tasks
+        const tasksResponse = await apiFetch('/installer/tasks')
+        if (tasksResponse.ok) {
+          const tasks = await tasksResponse.json()
           setInstallTasks(tasks.map((task: any) => ({
             ...task,
             startTime: new Date(task.startTime),
             endTime: task.endTime ? new Date(task.endTime) : undefined
           })))
         }
+
+        // Fetch preset resources
+        const resources = await fetchPresetResources()
+        setPresetResources(resources)
+        setResourcesError(null) // Clear any previous errors
       } catch (error) {
-        console.error('Failed to fetch existing tasks:', error)
+        console.error('Failed to fetch data:', error)
+        setResourcesError(t('resourceInstaller.messages.fetchResourcesFailed'))
+      } finally {
+        setIsLoadingResources(false)
       }
     }
 
-    fetchExistingTasks()
+    fetchData()
   }, [])
 
-  // Preset resources
-  const presetResources: Resource[] = [
-    {
-      id: '1',
-      name: t('resourceInstaller.resources.stableDiffusion.name'),
-      type: 'model',
-      size: '6.6 GB',
-      description: t('resourceInstaller.resources.stableDiffusion.description')
-    },
-    {
-      id: '2',
-      name: t('resourceInstaller.resources.controlNet.name'),
-      type: 'extension',
-      size: '2.1 GB',
-      description: t('resourceInstaller.resources.controlNet.description')
-    },
-    {
-      id: '3',
-      name: t('resourceInstaller.resources.faceRestore.name'),
-      type: 'script',
-      size: '150 MB',
-      description: t('resourceInstaller.resources.faceRestore.description')
-    },
-    {
-      id: '4',
-      name: t('resourceInstaller.resources.animeModel.name'),
-      type: 'model',
-      size: '4.2 GB',
-      description: t('resourceInstaller.resources.animeModel.description')
-    }
-  ]
+  // Convert PresetResource to Resource for compatibility
+  const convertPresetToResource = (preset: PresetResource): Resource => ({
+    id: preset.id,
+    name: preset.name,
+    type: preset.type as 'model' | 'extension' | 'script' | 'custom',
+    size: preset.size,
+    description: preset.description,
+    url: preset.url
+  })
 
   // Installation destinations
   const installDestinations: InstallDestination[] = [
@@ -140,7 +131,8 @@ const ResourceInstaller = () => {
     }
   ]
 
-  const handleResourceSelect = (resource: Resource) => {
+  const handleResourceSelect = (preset: PresetResource) => {
+    const resource = convertPresetToResource(preset)
     setSelectedResource(resource)
     setIsCustomMode(false)
 
@@ -401,30 +393,59 @@ const ResourceInstaller = () => {
                       {/* Preset Resources */}
                       <div>
                         <h3 className="text-sm font-medium mb-3 text-muted-foreground">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
-                        <div className="space-y-3 p-1">
-                          {presetResources.map((resource) => (
-                            <div
-                              key={resource.id}
-                              className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50 m-1"
-                              onClick={() => handleResourceSelect(resource)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-white">{resource.name}</h4>
-                                  <p className="text-sm text-muted-foreground">{resource.description}</p>
-                                </div>
-                                <div className="text-right space-y-1">
-                                  <div className="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
-                                    {resource.size}
+                        {isLoadingResources ? (
+                          <div className="space-y-3 p-1">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div key={i} className="gaming-card p-4 border-border m-1 animate-pulse">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                                    <div className="h-3 bg-muted rounded w-full"></div>
                                   </div>
-                                  <div className="px-2 py-1 bg-accent/20 text-accent rounded text-xs">
-                                    {resource.type}
+                                  <div className="text-right space-y-1">
+                                    <div className="h-6 bg-muted rounded w-16"></div>
+                                    <div className="h-6 bg-muted rounded w-12"></div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        ) : resourcesError ? (
+                          <div className="p-1">
+                            <Alert variant="destructive" className="border-red-500/20 bg-red-500/10">
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertTitle className="text-red-400">{t('resourceInstaller.messages.errorOccurred')}</AlertTitle>
+                              <AlertDescription className="text-red-300">
+                                {resourcesError}
+                              </AlertDescription>
+                            </Alert>
+                          </div>
+                        ) : (
+                          <div className="space-y-3 p-1">
+                            {presetResources.map((resource) => (
+                              <div
+                                key={resource.id}
+                                className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50 m-1"
+                                onClick={() => handleResourceSelect(resource)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-white">{resource.name}</h4>
+                                    <p className="text-sm text-muted-foreground">{resource.description}</p>
+                                  </div>
+                                  <div className="text-right space-y-1">
+                                    <div className="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+                                      {resource.size}
+                                    </div>
+                                    <div className="px-2 py-1 bg-accent/20 text-accent rounded text-xs">
+                                      {resource.type}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Custom Mode Toggle */}

@@ -71,7 +71,9 @@
       "invalidUrl": "Please enter a valid URL",
       "installStarted": "Started installation of {{resourceName}}",
       "installCompleted": "Installation of {{resourceName}} completed",
-      "installCancelled": "Installation cancelled"
+      "installCancelled": "Installation cancelled",
+      "fetchResourcesFailed": "Failed to fetch preset resources. Please reload the page.",
+      "errorOccurred": "An error occurred"
     }
   },
   "dashboard": {
