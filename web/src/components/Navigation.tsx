@@ -25,15 +25,15 @@ const Navigation = () => {
   return (
     <>
       {/* Mobile menu button - only visible on mobile */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-3 left-3 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="inline-flex items-center justify-center p-3 rounded-lg text-white hover:text-white bg-primary border border-primary shadow-sm"
+          className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white bg-primary border border-primary shadow-sm"
         >
           {isMobileMenuOpen ? (
-            <X className="h-6 w-6" />
+            <X className="h-4 w-4" />
           ) : (
-            <Menu className="h-6 w-6" />
+            <Menu className="h-4 w-4" />
           )}
         </button>
       </div>

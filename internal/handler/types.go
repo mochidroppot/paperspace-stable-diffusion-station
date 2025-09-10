@@ -67,19 +67,19 @@ type InstallTask struct {
 
 // Preset resource data structures
 type PresetResource struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Type          string   `json:"type"` // model, extension, script
-	Size          string   `json:"size"`
-	Description   string   `json:"description"`
-	Category      string   `json:"category,omitempty"`
-	Tags          []string `json:"tags,omitempty"`
-	Version       string   `json:"version,omitempty"`
-	Author        string   `json:"author,omitempty"`
-	License       string   `json:"license,omitempty"`
-	Requirements  []string `json:"requirements,omitempty"`
-	Compatibility []string `json:"compatibility,omitempty"`
-	URL           string   `json:"url,omitempty"`
+	ID            string   `json:"id" yaml:"id"`
+	Name          string   `json:"name" yaml:"name"`
+	Type          string   `json:"type" yaml:"type"` // model, extension, script
+	Size          string   `json:"size" yaml:"size"`
+	Description   string   `json:"description" yaml:"description"`
+	Category      string   `json:"category,omitempty" yaml:"category,omitempty"`
+	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Version       string   `json:"version,omitempty" yaml:"version,omitempty"`
+	Author        string   `json:"author,omitempty" yaml:"author,omitempty"`
+	License       string   `json:"license,omitempty" yaml:"license,omitempty"`
+	Requirements  []string `json:"requirements,omitempty" yaml:"requirements,omitempty"`
+	Compatibility []string `json:"compatibility,omitempty" yaml:"compatibility,omitempty"`
+	URL           string   `json:"url,omitempty" yaml:"url,omitempty"`
 }
 
 type PresetResourcesResponse struct {

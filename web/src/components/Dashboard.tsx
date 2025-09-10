@@ -8,7 +8,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       <Navigation />
-      <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
+      <div className="lg:ml-64 p-6 pt-12 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4">

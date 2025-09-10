@@ -2,7 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 // GetPresetResourcesHandler returns the list of preset resources
@@ -25,8 +30,12 @@ func GetPresetResourcesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get preset resources
-	resources := getPresetResources()
+	// Get preset resources from config file
+	resources, err := getPresetResourcesFromConfig()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to load preset resources: %v", err), http.StatusInternalServerError)
+		return
+	}
 
 	// Create response
 	response := PresetResourcesResponse{
@@ -40,93 +49,32 @@ func GetPresetResourcesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getPresetResources returns the list of preset resources
-// This data is maintained in code as per user preference for OSS context
-func getPresetResources() []PresetResource {
-	return []PresetResource{
-		{
-			ID:            "stable-diffusion-xl",
-			Name:          "Stable Diffusion XL",
-			Type:          "model",
-			Size:          "6.6 GB",
-			Description:   "High-quality image generation model with improved resolution and detail",
-			Category:      "Image Generation",
-			Tags:          []string{"image-generation", "ai", "diffusion"},
-			Version:       "1.0",
-			Author:        "Stability AI",
-			License:       "CreativeML Open RAIL++-M",
-			Requirements:  []string{"CUDA 11.8+", "16GB+ VRAM"},
-			Compatibility: []string{"AUTOMATIC1111", "ComfyUI", "InvokeAI"},
-		},
-		{
-			ID:            "controlnet",
-			Name:          "ControlNet Extension",
-			Type:          "extension",
-			Size:          "2.1 GB",
-			Description:   "Extension for controlling image structure and composition",
-			Category:      "Control",
-			Tags:          []string{"control", "pose", "depth", "canny"},
-			Version:       "1.1.4",
-			Author:        "lllyasviel",
-			License:       "Apache 2.0",
-			Requirements:  []string{"AUTOMATIC1111", "ControlNet models"},
-			Compatibility: []string{"AUTOMATIC1111"},
-		},
-		{
-			ID:            "face-restore",
-			Name:          "Face Restoration Script",
-			Type:          "script",
-			Size:          "150 MB",
-			Description:   "Script for enhancing and restoring facial features in images",
-			Category:      "Enhancement",
-			Tags:          []string{"face", "restoration", "enhancement"},
-			Version:       "1.0.2",
-			Author:        "xinntao",
-			License:       "MIT",
-			Requirements:  []string{"AUTOMATIC1111", "GFPGAN model"},
-			Compatibility: []string{"AUTOMATIC1111"},
-		},
-		{
-			ID:            "anime-model",
-			Name:          "Anime Style Model",
-			Type:          "model",
-			Size:          "4.2 GB",
-			Description:   "Specialized model for anime-style image generation",
-			Category:      "Art Style",
-			Tags:          []string{"anime", "manga", "art-style"},
-			Version:       "2.0",
-			Author:        "Anime Community",
-			License:       "Creative Commons",
-			Requirements:  []string{"CUDA 11.8+", "8GB+ VRAM"},
-			Compatibility: []string{"AUTOMATIC1111", "ComfyUI"},
-		},
-		{
-			ID:            "lora-trainer",
-			Name:          "LoRA Training Script",
-			Type:          "script",
-			Size:          "50 MB",
-			Description:   "Script for training custom LoRA models with your own data",
-			Category:      "Training",
-			Tags:          []string{"training", "lora", "custom"},
-			Version:       "1.0.0",
-			Author:        "kohya-ss",
-			License:       "MIT",
-			Requirements:  []string{"Python 3.8+", "CUDA 11.8+"},
-			Compatibility: []string{"AUTOMATIC1111"},
-		},
-		{
-			ID:            "upscaler-esrgan",
-			Name:          "ESRGAN Upscaler",
-			Type:          "model",
-			Size:          "67 MB",
-			Description:   "Enhanced Super-Resolution GAN for image upscaling",
-			Category:      "Upscaling",
-			Tags:          []string{"upscaling", "super-resolution", "gan"},
-			Version:       "1.0",
-			Author:        "xinntao",
-			License:       "Apache 2.0",
-			Requirements:  []string{"AUTOMATIC1111"},
-			Compatibility: []string{"AUTOMATIC1111", "ComfyUI"},
-		},
+// PresetResourcesConfig represents the structure of the YAML config file
+type PresetResourcesConfig struct {
+	Resources []PresetResource `yaml:"resources"`
+}
+
+// getPresetResourcesFromConfig loads preset resources from YAML config file
+func getPresetResourcesFromConfig() ([]PresetResource, error) {
+	// Get the path to the config file
+	configPath := filepath.Join("config", "preset_resources.yaml")
+
+	// Check if file exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("config file not found: %s", configPath)
 	}
+
+	// Read the config file
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %v", err)
+	}
+
+	// Parse YAML
+	var config PresetResourcesConfig
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %v", err)
+	}
+
+	return config.Resources, nil
 }
