@@ -27,41 +27,58 @@ const Navigation = () => {
   ]
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">System Dashboard</h1>
-            </div>
+    <>
+      {/* Mobile menu button - only visible on mobile */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="inline-flex items-center justify-center p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200"
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
+      </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:ml-6 md:flex md:space-x-8">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                      }`}
-                  >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </div>
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center px-6 py-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-gray-900">System Dashboard</h1>
           </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Navigation Items */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  {item.name}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Bottom Section */}
+          <div className="px-4 py-4 border-t border-gray-200 space-y-4">
             {/* Language Switcher */}
             <div className="flex items-center">
               <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
-                <SelectTrigger className="w-32 h-8">
+                <SelectTrigger className="w-full h-9">
                   <SelectValue>
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">
@@ -91,71 +108,39 @@ const Navigation = () => {
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-400 hover:text-gray-500">
-              <Bell className="h-5 w-5" />
+            <button className="relative w-full flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+              <Bell className="h-5 w-5 mr-3" />
+              <span className="text-sm font-medium">Notifications</span>
               <Badge
                 variant="destructive"
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+                className="ml-auto h-5 w-5 flex items-center justify-center text-xs"
               >
                 3
               </Badge>
             </button>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-3">
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-700">Admin User</p>
-                <p className="text-xs text-gray-500">admin@example.com</p>
-              </div>
+            <div className="flex items-center space-x-3 px-3 py-2">
               <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
                 <span className="text-sm font-medium text-white">AU</span>
               </div>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-700 truncate">Admin User</p>
+                <p className="text-xs text-gray-500 truncate">admin@example.com</p>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="pt-2 pb-3 space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive
-                      ? 'bg-blue-50 border-blue-500 text-blue-700'
-                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                      }`}
-                  >
-                    <div className="flex items-center">
-                      <Icon className="h-4 w-4 mr-3" />
-                      {item.name}
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
-    </nav>
+
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+    </>
   )
 }
 

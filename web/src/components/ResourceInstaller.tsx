@@ -365,7 +365,7 @@ const ResourceInstaller = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="p-6">
+      <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">

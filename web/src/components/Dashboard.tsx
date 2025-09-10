@@ -1,336 +1,636 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Badge } from './ui/badge'
-import { Progress } from './ui/progress'
-import Navigation from './Navigation'
-import { 
-  Users, 
-  Activity, 
-  TrendingUp, 
-  Server, 
-  Database, 
-  Clock,
+import {
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Clock,
+  Download,
+  FolderOpen,
+  Package,
+  Play,
+  Plus,
+  Trash2,
+  X
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import Navigation from './Navigation'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Combobox } from './ui/combobox'
+import { Progress } from './ui/progress'
 
-interface DashboardStats {
-  totalUsers: number
-  activeConnections: number
-  systemUptime: string
-  memoryUsage: number
-  cpuUsage: number
-  diskUsage: number
-  requestsPerMinute: number
-  errorRate: number
-}
-
-interface RecentActivity {
+interface Resource {
   id: string
-  type: 'info' | 'warning' | 'error' | 'success'
-  message: string
-  timestamp: string
+  name: string
+  type: 'model' | 'extension' | 'script' | 'custom'
+  url?: string
+  size?: string
+  description?: string
 }
 
-const Dashboard = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    activeConnections: 0,
-    systemUptime: '0h 0m',
-    memoryUsage: 0,
-    cpuUsage: 0,
-    diskUsage: 0,
-    requestsPerMinute: 0,
-    errorRate: 0
-  })
+interface InstallDestination {
+  id: string
+  name: string
+  path: string
+  type: 'models' | 'extensions' | 'scripts' | 'custom'
+}
 
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+interface InstallTask {
+  id: string
+  resource: Resource
+  destination: InstallDestination
+  status: 'pending' | 'downloading' | 'installing' | 'completed' | 'failed' | 'cancelled'
+  progress: number
+  error?: string
+  startTime?: Date
+  endTime?: Date
+}
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`
-    
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`
-    
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`
-  }
+const ResourceInstaller = () => {
+  const { t } = useTranslation()
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
+  const [selectedDestination, setSelectedDestination] = useState<InstallDestination | null>(null)
+  const [resourceUrl, setResourceUrl] = useState('')
+  const [resourceName, setResourceName] = useState('')
+  const [resourceDescription, setResourceDescription] = useState('')
+  const [isCustomMode, setIsCustomMode] = useState(false)
+  const [installTasks, setInstallTasks] = useState<InstallTask[]>([])
 
+  // Component mount: fetch existing tasks
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchExistingTasks = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/dashboard')
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard data')
+        const response = await fetch('http://localhost:8080/api/installer/tasks')
+        if (response.ok) {
+          const tasks = await response.json()
+          setInstallTasks(tasks.map((task: any) => ({
+            ...task,
+            startTime: new Date(task.startTime),
+            endTime: task.endTime ? new Date(task.endTime) : undefined
+          })))
         }
-        
-        const data = await response.json()
-        setStats(data.stats)
-        
-        // Format timestamps for display
-        const formattedActivity = data.recentActivity.map((activity: { timestamp: string; [key: string]: unknown }) => ({
-          ...activity,
-          timestamp: formatTimestamp(activity.timestamp)
-        }))
-        setRecentActivity(formattedActivity)
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error)
-        // Fallback to mock data if API fails
-        setStats({
-          totalUsers: 1247,
-          activeConnections: 89,
-          systemUptime: '7d 14h 32m',
-          memoryUsage: 68,
-          cpuUsage: 23,
-          diskUsage: 45,
-          requestsPerMinute: 156,
-          errorRate: 0.2
-        })
-
-        setRecentActivity([
-          {
-            id: '1',
-            type: 'success',
-            message: 'New user registered successfully',
-            timestamp: '2 minutes ago'
-          },
-          {
-            id: '2',
-            type: 'info',
-            message: 'System backup completed',
-            timestamp: '15 minutes ago'
-          },
-          {
-            id: '3',
-            type: 'warning',
-            message: 'High memory usage detected',
-            timestamp: '1 hour ago'
-          },
-          {
-            id: '4',
-            type: 'error',
-            message: 'Database connection timeout',
-            timestamp: '2 hours ago'
-          }
-        ])
+        console.error('Failed to fetch existing tasks:', error)
       }
     }
 
-    fetchDashboardData()
-    
-    // Set up polling for real-time updates
-    const interval = setInterval(fetchDashboardData, 30000) // Update every 30 seconds
-    
-    return () => clearInterval(interval)
+    fetchExistingTasks()
   }, [])
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      default:
-        return <Activity className="h-4 w-4 text-blue-500" />
+  // Preset resources
+  const presetResources: Resource[] = [
+    {
+      id: '1',
+      name: t('resourceInstaller.resources.stableDiffusion.name'),
+      type: 'model',
+      size: '6.6 GB',
+      description: t('resourceInstaller.resources.stableDiffusion.description')
+    },
+    {
+      id: '2',
+      name: t('resourceInstaller.resources.controlNet.name'),
+      type: 'extension',
+      size: '2.1 GB',
+      description: t('resourceInstaller.resources.controlNet.description')
+    },
+    {
+      id: '3',
+      name: t('resourceInstaller.resources.faceRestore.name'),
+      type: 'script',
+      size: '150 MB',
+      description: t('resourceInstaller.resources.faceRestore.description')
+    },
+    {
+      id: '4',
+      name: t('resourceInstaller.resources.animeModel.name'),
+      type: 'model',
+      size: '4.2 GB',
+      description: t('resourceInstaller.resources.animeModel.description')
+    }
+  ]
+
+  // Installation destinations
+  const installDestinations: InstallDestination[] = [
+    {
+      id: '1',
+      name: t('resourceInstaller.destinations.models'),
+      path: '/models/stable-diffusion',
+      type: 'models'
+    },
+    {
+      id: '2',
+      name: t('resourceInstaller.destinations.extensions'),
+      path: '/extensions',
+      type: 'extensions'
+    },
+    {
+      id: '3',
+      name: t('resourceInstaller.destinations.scripts'),
+      path: '/scripts',
+      type: 'scripts'
+    },
+    {
+      id: '4',
+      name: t('resourceInstaller.destinations.custom'),
+      path: '/custom',
+      type: 'custom'
+    }
+  ]
+
+  const handleResourceSelect = (resource: Resource) => {
+    setSelectedResource(resource)
+    setIsCustomMode(false)
+
+    // Auto-fill resource details from preset
+    setResourceUrl(resource.url || '')
+    setResourceName(resource.name)
+    setResourceDescription(resource.description || '')
+
+    // Auto-select destination based on resource type
+    const destination = installDestinations.find(dest => dest.type === resource.type + 's')
+    if (destination) {
+      setSelectedDestination(destination)
     }
   }
 
-  const getActivityBadgeVariant = (type: string) => {
-    switch (type) {
-      case 'success':
-        return 'default' as const
-      case 'warning':
+  const handleCustomModeToggle = () => {
+    setIsCustomMode(true)
+    setSelectedResource(null)
+    setResourceUrl('')
+    setResourceName('')
+    setResourceDescription('')
+    setSelectedDestination(null)
+  }
+
+  const handleResourceUrlChange = (url: string) => {
+    setResourceUrl(url)
+    updateCustomResource()
+  }
+
+  const handleResourceNameChange = (name: string) => {
+    setResourceName(name)
+    updateCustomResource()
+  }
+
+  const handleResourceDescriptionChange = (description: string) => {
+    setResourceDescription(description)
+    updateCustomResource()
+  }
+
+  const updateCustomResource = () => {
+    if (isCustomMode && resourceUrl.trim() && resourceName.trim()) {
+      setSelectedResource({
+        id: 'custom',
+        name: resourceName.trim(),
+        type: 'custom',
+        url: resourceUrl.trim(),
+        description: resourceDescription.trim()
+      })
+    } else if (isCustomMode) {
+      setSelectedResource(null)
+    }
+  }
+
+  const handleDestinationSelect = (destination: InstallDestination) => {
+    setSelectedDestination(destination)
+  }
+
+  const handleInstall = async () => {
+    if (!selectedResource) return
+
+    // For preset resources, auto-determine destination
+    let destination = selectedDestination
+    if (!isCustomMode && !destination) {
+      destination = installDestinations.find(dest => dest.type === selectedResource.type + 's') || null
+    }
+
+    if (!destination) {
+      alert(t('resourceInstaller.messages.noDestinationSelected'))
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/api/installer/install', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resource: selectedResource,
+          destination: destination
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to start installation')
+      }
+
+      const result = await response.json()
+
+      // Add new task
+      const newTask: InstallTask = {
+        id: result.taskId,
+        resource: selectedResource,
+        destination: destination,
+        status: 'pending',
+        progress: 0,
+        startTime: new Date()
+      }
+
+      setInstallTasks(prev => [...prev, newTask])
+
+      // Start polling
+      startPolling(result.taskId)
+    } catch (error) {
+      console.error('Installation failed:', error)
+      alert(t('resourceInstaller.messages.installFailed'))
+    }
+  }
+
+  const startPolling = (taskId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/installer/status?taskId=${taskId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch task status')
+        }
+
+        const taskData = await response.json()
+
+        setInstallTasks(prev => prev.map(task =>
+          task.id === taskId
+            ? {
+              ...task,
+              status: taskData.status,
+              progress: taskData.progress,
+              error: taskData.error,
+              endTime: taskData.endTime ? new Date(taskData.endTime) : undefined
+            }
+            : task
+        ))
+
+        // 完了または失敗した場合はポーリングを停止
+        if (taskData.status === 'completed' || taskData.status === 'failed' || taskData.status === 'cancelled') {
+          clearInterval(interval)
+        }
+      } catch (error) {
+        console.error('Failed to fetch task status:', error)
+        clearInterval(interval)
+      }
+    }, 1000) // 1秒間隔でポーリング
+  }
+
+  const handleCancelTask = async (taskId: string) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/installer/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskId })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel task')
+      }
+
+      setInstallTasks(prev => prev.map(task =>
+        task.id === taskId
+          ? {
+            ...task,
+            status: 'cancelled' as const,
+            endTime: new Date()
+          }
+          : task
+      ))
+    } catch (error) {
+      console.error('Failed to cancel task:', error)
+      alert(t('resourceInstaller.messages.cancelFailed'))
+    }
+  }
+
+  const handleRemoveTask = (taskId: string) => {
+    setInstallTasks(prev => prev.filter(task => task.id !== taskId))
+  }
+
+  const getStatusIcon = (status: InstallTask['status']) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      case 'downloading':
+      case 'installing':
+        return <Download className="h-4 w-4 text-blue-500" />
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'failed':
+        return <AlertCircle className="h-4 w-4 text-red-500" />
+      case 'cancelled':
+        return <X className="h-4 w-4 text-gray-500" />
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getStatusBadgeVariant = (status: InstallTask['status']) => {
+    switch (status) {
+      case 'pending':
         return 'secondary' as const
-      case 'error':
+      case 'downloading':
+      case 'installing':
+        return 'default' as const
+      case 'completed':
+        return 'default' as const
+      case 'failed':
         return 'destructive' as const
+      case 'cancelled':
+        return 'outline' as const
       default:
         return 'outline' as const
     }
   }
 
+  const formatDuration = (startTime: Date, endTime?: Date) => {
+    const end = endTime || new Date()
+    const diff = end.getTime() - startTime.getTime()
+    const seconds = Math.floor(diff / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`
+    }
+    return `${remainingSeconds}s`
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="p-6">
+      <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Monitor your system performance and activity</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('resourceInstaller.title')}</h1>
+            <p className="text-gray-600 mt-2">{t('resourceInstaller.description')}</p>
           </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Connections</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeConnections}</div>
-              <p className="text-xs text-muted-foreground">
-                +3 from last hour
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.systemUptime}</div>
-              <p className="text-xs text-muted-foreground">
-                99.9% availability
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Requests/min</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.requestsPerMinute}</div>
-              <p className="text-xs text-muted-foreground">
-                +8% from last hour
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* System Resources */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-5 w-5" />
-                System Resources
-              </CardTitle>
-              <CardDescription>Current system resource usage</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>CPU Usage</span>
-                  <span>{stats.cpuUsage}%</span>
-                </div>
-                <Progress value={stats.cpuUsage} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Memory Usage</span>
-                  <span>{stats.memoryUsage}%</span>
-                </div>
-                <Progress value={stats.memoryUsage} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Disk Usage</span>
-                  <span>{stats.diskUsage}%</span>
-                </div>
-                <Progress value={stats.diskUsage} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Database Status
-              </CardTitle>
-              <CardDescription>Database performance metrics</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Connection Pool</span>
-                <Badge variant="default">Healthy</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Query Performance</span>
-                <Badge variant="default">Good</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Error Rate</span>
-                <Badge variant={stats.errorRate < 1 ? "default" : "destructive"}>
-                  {stats.errorRate}%
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common system operations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors">
-                View System Logs
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors">
-                Export Data
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors">
-                System Settings
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors">
-                User Management
-              </button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest system events and notifications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg border">
-                  {getActivityIcon(activity.type)}
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Panel - Resource Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  {t('resourceInstaller.resourceSelection.title')}
+                </CardTitle>
+                <CardDescription>{t('resourceInstaller.resourceSelection.description')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Preset Resources */}
+                <div>
+                  <h3 className="text-sm font-medium mb-3">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
+                  <div className="space-y-2">
+                    {presetResources.map((resource) => (
+                      <div
+                        key={resource.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedResource?.id === resource.id && !isCustomMode
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        onClick={() => handleResourceSelect(resource)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{resource.name}</h4>
+                            <p className="text-sm text-gray-600">{resource.description}</p>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="outline">{resource.size}</Badge>
+                            <Badge variant="secondary" className="ml-1">
+                              {resource.type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <Badge variant={getActivityBadgeVariant(activity.type)}>
-                    {activity.type}
-                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
+                {/* Custom Mode Toggle */}
+                <div className="pt-4 border-t">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-3">
+                      {t('resourceInstaller.resourceSelection.orUseCustom')}
+                    </p>
+                    <Button
+                      variant={isCustomMode ? "default" : "outline"}
+                      onClick={handleCustomModeToggle}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {isCustomMode ? t('resourceInstaller.resourceSelection.customModeActive') : t('resourceInstaller.resourceSelection.useCustomUrl')}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right Panel - Resource Details & Installation Destination */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5" />
+                  {isCustomMode ? t('resourceInstaller.resourceSelection.customUrl') : t('resourceInstaller.installDestination.title')}
+                </CardTitle>
+                <CardDescription>
+                  {isCustomMode ? t('resourceInstaller.resourceSelection.customModeDescription') : t('resourceInstaller.installDestination.description')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Resource Details */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.urlPlaceholder')}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/resource.zip"
+                      value={resourceUrl}
+                      onChange={(e) => handleResourceUrlChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.namePlaceholder')}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Resource Name"
+                      value={resourceName}
+                      onChange={(e) => handleResourceNameChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('resourceInstaller.resourceSelection.descriptionPlaceholder')}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Optional description"
+                      value={resourceDescription}
+                      onChange={(e) => handleResourceDescriptionChange(e.target.value)}
+                      disabled={!isCustomMode}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
+                        }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Installation Destination Selection - Only for Custom Mode */}
+                {isCustomMode && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('resourceInstaller.installDestination.title')}
+                    </label>
+                    <Combobox
+                      options={installDestinations.map(dest => ({
+                        value: dest.id,
+                        label: dest.name,
+                        disabled: false
+                      }))}
+                      value={selectedDestination?.id || ''}
+                      onValueChange={(value) => {
+                        const destination = installDestinations.find(dest => dest.id === value)
+                        if (destination) {
+                          handleDestinationSelect(destination)
+                        }
+                      }}
+                      placeholder={t('resourceInstaller.installDestination.description')}
+                      searchPlaceholder="Search destinations..."
+                      emptyText="No destinations found."
+                      width="w-full"
+                    />
+                    {selectedDestination && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{selectedDestination.name}</h4>
+                            <p className="text-sm text-gray-600">{selectedDestination.path}</p>
+                          </div>
+                          <Badge variant="outline">{selectedDestination.type}</Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Preset Resource Destination Display */}
+                {!isCustomMode && selectedResource && selectedDestination && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Auto-selected Destination</h4>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">{selectedDestination.name}</h4>
+                        <p className="text-sm text-gray-600">{selectedDestination.path}</p>
+                      </div>
+                      <Badge variant="outline">{selectedDestination.type}</Badge>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Install Button */}
+          <div className="mt-6 flex justify-center">
+            <Button
+              onClick={handleInstall}
+              disabled={!selectedResource || (isCustomMode && !selectedDestination)}
+              className="px-8 py-3"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {t('resourceInstaller.installButton')}
+            </Button>
+          </div>
+
+          {/* Installation Queue */}
+          {installTasks.length > 0 && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>{t('resourceInstaller.installQueue.title')}</CardTitle>
+                <CardDescription>{t('resourceInstaller.installQueue.description')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {installTasks.map((task) => (
+                    <div key={task.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(task.status)}
+                          <div>
+                            <h4 className="font-medium">{task.resource.name}</h4>
+                            <p className="text-sm text-gray-600">
+                              {task.destination.name} • {task.resource.size}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getStatusBadgeVariant(task.status)}>
+                            {task.status}
+                          </Badge>
+                          {task.status === 'downloading' || task.status === 'installing' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelTask(task.id)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveTask(task.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {(task.status === 'downloading' || task.status === 'installing') && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>{t('resourceInstaller.installQueue.progress')}</span>
+                            <span>{Math.round(task.progress)}%</span>
+                          </div>
+                          <Progress value={task.progress} className="h-2" />
+                        </div>
+                      )}
+
+                      {task.startTime && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          {t('resourceInstaller.installQueue.startTime')}: {task.startTime.toLocaleTimeString()}
+                          {task.endTime && (
+                            <span> • {t('resourceInstaller.installQueue.duration')}: {formatDuration(task.startTime, task.endTime)}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-export default Dashboard
+export default ResourceInstaller
