@@ -1,17 +1,14 @@
 import i18n from 'i18next'
 import {
-  Bell,
   Download,
   LayoutDashboard,
   Menu,
-  Settings,
-  Users,
-  X
+  X,
+  Zap
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
-import { Badge } from './ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 const Navigation = () => {
@@ -22,8 +19,6 @@ const Navigation = () => {
   const navigationItems = [
     { name: t('navigation.dashboard'), icon: LayoutDashboard, href: '/dashboard' },
     { name: t('navigation.resourceInstaller'), icon: Download, href: '/installer' },
-    { name: 'Users', icon: Users, href: '#', active: false },
-    { name: 'Settings', icon: Settings, href: '#', active: false },
   ]
 
   return (
@@ -32,7 +27,7 @@ const Navigation = () => {
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="inline-flex items-center justify-center p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200"
+          className="inline-flex items-center justify-center p-3 rounded-lg text-white hover:text-white bg-primary border border-primary shadow-sm"
         >
           {isMobileMenuOpen ? (
             <X className="h-6 w-6" />
@@ -43,12 +38,20 @@ const Navigation = () => {
       </div>
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-card backdrop-blur-md border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center px-6 py-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">System Dashboard</h1>
+          <div className="flex items-center px-6 py-4 border-b border-border">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                <Zap className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">AI Station</h1>
+                <p className="text-xs text-muted-foreground">Personal AI Environment</p>
+              </div>
+            </div>
           </div>
 
           {/* Navigation Items */}
@@ -60,25 +63,26 @@ const Navigation = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group ${isActive
+                    ? 'bg-primary/20 text-foreground border border-primary/50'
+                    : 'text-muted-foreground hover:bg-accent/10 hover:text-foreground hover:border hover:border-accent/30'
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
-                  {item.name}
+                  <Icon className={`h-5 w-5 mr-3 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
+                  <span>{item.name}</span>
                 </Link>
               )
             })}
           </nav>
 
           {/* Bottom Section */}
-          <div className="px-4 py-4 border-t border-gray-200 space-y-4">
+          <div className="px-4 py-4 border-t border-border space-y-4">
+
             {/* Language Switcher */}
             <div className="flex items-center">
               <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
-                <SelectTrigger className="w-full h-9">
+                <SelectTrigger className="w-full h-9 bg-muted border-border text-foreground">
                   <SelectValue>
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">
@@ -90,14 +94,14 @@ const Navigation = () => {
                     </div>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">
+                <SelectContent className="bg-gray-800 border-purple-500/30">
+                  <SelectItem value="en" className="text-white hover:bg-purple-600/20">
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">🇺🇸</span>
                       <span>English</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="ja">
+                  <SelectItem value="ja" className="text-white hover:bg-purple-600/20">
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">🇯🇵</span>
                       <span>日本語</span>
@@ -106,29 +110,6 @@ const Navigation = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Notifications */}
-            <button className="relative w-full flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-              <Bell className="h-5 w-5 mr-3" />
-              <span className="text-sm font-medium">Notifications</span>
-              <Badge
-                variant="destructive"
-                className="ml-auto h-5 w-5 flex items-center justify-center text-xs"
-              >
-                3
-              </Badge>
-            </button>
-
-            {/* User Menu */}
-            <div className="flex items-center space-x-3 px-3 py-2">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-sm font-medium text-white">AU</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700 truncate">Admin User</p>
-                <p className="text-xs text-gray-500 truncate">admin@example.com</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -136,7 +117,7 @@ const Navigation = () => {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

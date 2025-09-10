@@ -1,21 +1,17 @@
 import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
+  Activity,
   Download,
-  FolderOpen,
   Package,
   Play,
   Plus,
-  Trash2,
-  X
+  X,
+  Zap
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Navigation from './Navigation'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Combobox } from './ui/combobox'
 import { Progress } from './ui/progress'
 
@@ -55,6 +51,8 @@ const ResourceInstaller = () => {
   const [resourceDescription, setResourceDescription] = useState('')
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [installTasks, setInstallTasks] = useState<InstallTask[]>([])
+  const [showResourceForm, setShowResourceForm] = useState(false)
+  // const customUrl = resourceUrl // Used in JSX conditionally
 
   // Component mount: fetch existing tasks
   useEffect(() => {
@@ -146,11 +144,8 @@ const ResourceInstaller = () => {
     setResourceName(resource.name)
     setResourceDescription(resource.description || '')
 
-    // Auto-select destination based on resource type
-    const destination = installDestinations.find(dest => dest.type === resource.type + 's')
-    if (destination) {
-      setSelectedDestination(destination)
-    }
+    // Show resource form
+    setShowResourceForm(true)
   }
 
   const handleCustomModeToggle = () => {
@@ -160,6 +155,7 @@ const ResourceInstaller = () => {
     setResourceName('')
     setResourceDescription('')
     setSelectedDestination(null)
+    setShowResourceForm(true)
   }
 
   const handleResourceUrlChange = (url: string) => {
@@ -193,6 +189,16 @@ const ResourceInstaller = () => {
 
   const handleDestinationSelect = (destination: InstallDestination) => {
     setSelectedDestination(destination)
+  }
+
+  const handleBackToResource = () => {
+    setShowResourceForm(false)
+    setSelectedResource(null)
+    setSelectedDestination(null)
+    setIsCustomMode(false)
+    setResourceUrl('')
+    setResourceName('')
+    setResourceDescription('')
   }
 
   const handleInstall = async () => {
@@ -309,45 +315,6 @@ const ResourceInstaller = () => {
     }
   }
 
-  const handleRemoveTask = (taskId: string) => {
-    setInstallTasks(prev => prev.filter(task => task.id !== taskId))
-  }
-
-  const getStatusIcon = (status: InstallTask['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case 'downloading':
-      case 'installing':
-        return <Download className="h-4 w-4 text-blue-500" />
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'failed':
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      case 'cancelled':
-        return <X className="h-4 w-4 text-gray-500" />
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getStatusBadgeVariant = (status: InstallTask['status']) => {
-    switch (status) {
-      case 'pending':
-        return 'secondary' as const
-      case 'downloading':
-      case 'installing':
-        return 'default' as const
-      case 'completed':
-        return 'default' as const
-      case 'failed':
-        return 'destructive' as const
-      case 'cancelled':
-        return 'outline' as const
-      default:
-        return 'outline' as const
-    }
-  }
 
   const formatDuration = (startTime: Date, endTime?: Date) => {
     const end = endTime || new Date()
@@ -363,270 +330,302 @@ const ResourceInstaller = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       <Navigation />
       <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">{t('resourceInstaller.title')}</h1>
-            <p className="text-gray-600 mt-2">{t('resourceInstaller.description')}</p>
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold text-white mb-2">
+              {t('resourceInstaller.title')}
+            </h1>
+            <p className="text-muted-foreground text-lg">{t('resourceInstaller.description')}</p>
           </div>
 
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Panel - Resource Selection */}
-            <Card>
+            {/* Left Panel - Resource Selection and Installation */}
+            <Card className="gaming-card no-hover min-h-[600px]">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  {t('resourceInstaller.resourceSelection.title')}
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                    <Package className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      {t('resourceInstaller.resourceSelection.title')}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {t('resourceInstaller.resourceSelection.description')}
+                    </p>
+                  </div>
                 </CardTitle>
-                <CardDescription>{t('resourceInstaller.resourceSelection.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Preset Resources */}
-                <div>
-                  <h3 className="text-sm font-medium mb-3">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
-                  <div className="space-y-2">
-                    {presetResources.map((resource) => (
-                      <div
-                        key={resource.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedResource?.id === resource.id && !isCustomMode
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        onClick={() => handleResourceSelect(resource)}
-                      >
-                        <div className="flex items-center justify-between">
+                {/* Content */}
+                <div className="relative overflow-hidden">
+                  {/* Resource Selection */}
+                  {!showResourceForm && (
+                    <div className="animate-in slide-in-from-right-4 duration-500">
+                      {/* Preset Resources */}
+                      <div>
+                        <h3 className="text-sm font-medium mb-3 text-muted-foreground">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
+                        <div className="space-y-3">
+                          {presetResources.map((resource) => (
+                            <div
+                              key={resource.id}
+                              className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50"
+                              onClick={() => handleResourceSelect(resource)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-white">{resource.name}</h4>
+                                  <p className="text-sm text-muted-foreground">{resource.description}</p>
+                                </div>
+                                <div className="text-right space-y-1">
+                                  <div className="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+                                    {resource.size}
+                                  </div>
+                                  <div className="px-2 py-1 bg-accent/20 text-accent rounded text-xs">
+                                    {resource.type}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Custom Mode Toggle */}
+                      <div className="pt-4 border-t border-border">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {t('resourceInstaller.resourceSelection.orUseCustom')}
+                          </p>
+                          <button
+                            onClick={handleCustomModeToggle}
+                            className="gaming-button w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-muted hover:bg-primary"
+                          >
+                            <Plus className="h-4 w-4 mr-2 inline" />
+                            {t('resourceInstaller.resourceSelection.useCustomUrl')}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Resource Form */}
+                  {showResourceForm && (
+                    <div className="animate-in slide-in-from-left-4 duration-500">
+                      <div className="space-y-4">
+                        {/* Back Button */}
+                        <div className="flex justify-start">
+                          <button
+                            onClick={handleBackToResource}
+                            className="gaming-button px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-muted hover:bg-muted/80"
+                          >
+                            <svg className="h-4 w-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            リソース選択に戻る
+                          </button>
+                        </div>
+
+                        {/* Resource Form */}
+                        <div className="space-y-4">
                           <div>
-                            <h4 className="font-medium">{resource.name}</h4>
-                            <p className="text-sm text-gray-600">{resource.description}</p>
+                            <label className="block text-sm font-medium text-muted-foreground mb-2">
+                              {t('resourceInstaller.resourceSelection.urlPlaceholder')}
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="https://example.com/resource.zip"
+                              value={resourceUrl}
+                              onChange={(e) => handleResourceUrlChange(e.target.value)}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                            />
                           </div>
-                          <div className="text-right">
-                            <Badge variant="outline">{resource.size}</Badge>
-                            <Badge variant="secondary" className="ml-1">
-                              {resource.type}
-                            </Badge>
+                          <div>
+                            <label className="block text-sm font-medium text-muted-foreground mb-2">
+                              {t('resourceInstaller.resourceSelection.namePlaceholder')}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Resource Name"
+                              value={resourceName}
+                              onChange={(e) => handleResourceNameChange(e.target.value)}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-muted-foreground mb-2">
+                              {t('resourceInstaller.resourceSelection.descriptionPlaceholder')}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Optional description"
+                              value={resourceDescription}
+                              onChange={(e) => handleResourceDescriptionChange(e.target.value)}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                            />
                           </div>
                         </div>
+
+                        {/* Destination Selection */}
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">
+                            {t('resourceInstaller.installDestination.title')}
+                          </label>
+                          <Combobox
+                            options={installDestinations.map(dest => ({
+                              value: dest.id,
+                              label: dest.name,
+                              disabled: false
+                            }))}
+                            value={selectedDestination?.id || ''}
+                            onValueChange={(value) => {
+                              const destination = installDestinations.find(dest => dest.id === value)
+                              if (destination) {
+                                handleDestinationSelect(destination)
+                              }
+                            }}
+                            placeholder={t('resourceInstaller.installDestination.description')}
+                            searchPlaceholder="Search destinations..."
+                            emptyText="No destinations found."
+                            width="w-full"
+                          />
+                          {selectedDestination && (
+                            <div className="mt-3 p-3 bg-muted rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium text-foreground">{selectedDestination.name}</h4>
+                                  <p className="text-sm text-muted-foreground">{selectedDestination.path}</p>
+                                </div>
+                                <Badge variant="outline">{selectedDestination.type}</Badge>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Install Button */}
+                        {selectedResource && selectedDestination && (
+                          <div className="flex justify-center pt-4">
+                            <button
+                              onClick={handleInstall}
+                              className="gaming-button px-12 py-4 text-lg font-bold rounded-lg transition-all duration-200"
+                            >
+                              <Play className="h-5 w-5 mr-3 inline" />
+                              {t('resourceInstaller.installButton')}
+                              <Zap className="h-5 w-5 ml-2 inline" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right Panel - Download Queue */}
+            <Card className="gaming-card no-hover min-h-[600px]">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      {t('resourceInstaller.installQueue.title')}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {t('resourceInstaller.installQueue.description')}
+                    </p>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {installTasks.length > 0 ? (
+                  <div className="space-y-4">
+                    {installTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="gaming-card p-4 border-border hover:border-primary/50 transition-all duration-200"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                              <Package className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-white">{task.resource.name}</h4>
+                              <p className="text-sm text-muted-foreground">{task.destination.name}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className={`px-2 py-1 rounded text-xs font-medium ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                              task.status === 'failed' ? 'bg-red-500/20 text-red-400' :
+                                task.status === 'cancelled' ? 'bg-gray-500/20 text-gray-400' :
+                                  'bg-blue-500/20 text-blue-400'
+                              }`}>
+                              {task.status === 'pending' && '待機中'}
+                              {task.status === 'downloading' && 'ダウンロード中'}
+                              {task.status === 'installing' && 'インストール中'}
+                              {task.status === 'completed' && '完了'}
+                              {task.status === 'failed' && '失敗'}
+                              {task.status === 'cancelled' && 'キャンセル'}
+                            </div>
+                            {task.status === 'downloading' || task.status === 'installing' ? (
+                              <button
+                                onClick={() => handleCancelTask(task.id)}
+                                className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                              >
+                                <X className="h-4 w-4 text-red-400" />
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {task.status === 'downloading' || task.status === 'installing' ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>{Math.round(task.progress)}%</span>
+                              <span>
+                                {task.startTime && formatDuration(task.startTime)}
+                              </span>
+                            </div>
+                            <Progress value={task.progress} className="h-2" />
+                          </div>
+                        ) : null}
+
+                        {task.error && (
+                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
+                            {task.error}
+                          </div>
+                        )}
+
+                        {task.status === 'completed' && task.endTime && (
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            完了: {task.endTime.toLocaleString()}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Custom Mode Toggle */}
-                <div className="pt-4 border-t">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500 mb-3">
-                      {t('resourceInstaller.resourceSelection.orUseCustom')}
-                    </p>
-                    <Button
-                      variant={isCustomMode ? "default" : "outline"}
-                      onClick={handleCustomModeToggle}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {isCustomMode ? t('resourceInstaller.resourceSelection.customModeActive') : t('resourceInstaller.resourceSelection.useCustomUrl')}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Right Panel - Resource Details & Installation Destination */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5" />
-                  {isCustomMode ? t('resourceInstaller.resourceSelection.customUrl') : t('resourceInstaller.installDestination.title')}
-                </CardTitle>
-                <CardDescription>
-                  {isCustomMode ? t('resourceInstaller.resourceSelection.customModeDescription') : t('resourceInstaller.installDestination.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Resource Details */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('resourceInstaller.resourceSelection.urlPlaceholder')}
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://example.com/resource.zip"
-                      value={resourceUrl}
-                      onChange={(e) => handleResourceUrlChange(e.target.value)}
-                      disabled={!isCustomMode}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
-                        }`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('resourceInstaller.resourceSelection.namePlaceholder')}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Resource Name"
-                      value={resourceName}
-                      onChange={(e) => handleResourceNameChange(e.target.value)}
-                      disabled={!isCustomMode}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
-                        }`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('resourceInstaller.resourceSelection.descriptionPlaceholder')}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Optional description"
-                      value={resourceDescription}
-                      onChange={(e) => handleResourceDescriptionChange(e.target.value)}
-                      disabled={!isCustomMode}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isCustomMode ? 'bg-gray-100 text-gray-500' : 'border-gray-300'
-                        }`}
-                    />
-                  </div>
-                </div>
-
-                {/* Installation Destination Selection - Only for Custom Mode */}
-                {isCustomMode && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('resourceInstaller.installDestination.title')}
-                    </label>
-                    <Combobox
-                      options={installDestinations.map(dest => ({
-                        value: dest.id,
-                        label: dest.name,
-                        disabled: false
-                      }))}
-                      value={selectedDestination?.id || ''}
-                      onValueChange={(value) => {
-                        const destination = installDestinations.find(dest => dest.id === value)
-                        if (destination) {
-                          handleDestinationSelect(destination)
-                        }
-                      }}
-                      placeholder={t('resourceInstaller.installDestination.description')}
-                      searchPlaceholder="Search destinations..."
-                      emptyText="No destinations found."
-                      width="w-full"
-                    />
-                    {selectedDestination && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">{selectedDestination.name}</h4>
-                            <p className="text-sm text-gray-600">{selectedDestination.path}</p>
-                          </div>
-                          <Badge variant="outline">{selectedDestination.type}</Badge>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Preset Resource Destination Display */}
-                {!isCustomMode && selectedResource && selectedDestination && (
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Auto-selected Destination</h4>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">{selectedDestination.name}</h4>
-                        <p className="text-sm text-gray-600">{selectedDestination.path}</p>
-                      </div>
-                      <Badge variant="outline">{selectedDestination.type}</Badge>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                      <Download className="h-8 w-8 text-muted-foreground" />
                     </div>
+                    <h3 className="text-lg font-medium text-white mb-2">ダウンロードキューは空です</h3>
+                    <p className="text-muted-foreground">リソースを選択してインストールを開始してください</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Install Button */}
-          <div className="mt-6 flex justify-center">
-            <Button
-              onClick={handleInstall}
-              disabled={!selectedResource || (isCustomMode && !selectedDestination)}
-              className="px-8 py-3"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {t('resourceInstaller.installButton')}
-            </Button>
-          </div>
-
-          {/* Installation Queue */}
-          {installTasks.length > 0 && (
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle>{t('resourceInstaller.installQueue.title')}</CardTitle>
-                <CardDescription>{t('resourceInstaller.installQueue.description')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {installTasks.map((task) => (
-                    <div key={task.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(task.status)}
-                          <div>
-                            <h4 className="font-medium">{task.resource.name}</h4>
-                            <p className="text-sm text-gray-600">
-                              {task.destination.name} • {task.resource.size}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={getStatusBadgeVariant(task.status)}>
-                            {task.status}
-                          </Badge>
-                          {task.status === 'downloading' || task.status === 'installing' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCancelTask(task.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRemoveTask(task.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-
-                      {(task.status === 'downloading' || task.status === 'installing') && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>{t('resourceInstaller.installQueue.progress')}</span>
-                            <span>{Math.round(task.progress)}%</span>
-                          </div>
-                          <Progress value={task.progress} className="h-2" />
-                        </div>
-                      )}
-
-                      {task.startTime && (
-                        <div className="text-xs text-gray-500 mt-2">
-                          {t('resourceInstaller.installQueue.startTime')}: {task.startTime.toLocaleTimeString()}
-                          {task.endTime && (
-                            <span> • {t('resourceInstaller.installQueue.duration')}: {formatDuration(task.startTime, task.endTime)}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

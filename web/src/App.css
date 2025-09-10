@@ -14,9 +14,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -25,6 +27,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -83,44 +86,58 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --radius: 0.75rem;
+  --background: oklch(0.05 0.02 280);
+  --foreground: oklch(0.95 0.02 280);
+  --card: oklch(0.12 0.05 280);
+  --card-foreground: oklch(0.95 0.02 280);
+  --popover: oklch(0.08 0.03 280);
+  --popover-foreground: oklch(0.95 0.02 280);
+  --primary: oklch(0.7 0.25 280);
+  --primary-foreground: oklch(0.05 0.02 280);
+  --secondary: oklch(0.15 0.05 280);
+  --secondary-foreground: oklch(0.9 0.02 280);
+  --muted: oklch(0.16 0.05 280);
+  --muted-foreground: oklch(0.6 0.05 280);
+  --accent: oklch(0.6 0.2 320);
+  --accent-foreground: oklch(0.05 0.02 280);
+  --destructive: oklch(0.6 0.25 20);
+  --border: oklch(0.2 0.05 280);
+  --input: oklch(0.12 0.03 280);
+  --ring: oklch(0.7 0.25 280);
+  --chart-1: oklch(0.7 0.25 280);
+  --chart-2: oklch(0.6 0.2 320);
+  --chart-3: oklch(0.5 0.2 200);
+  --chart-4: oklch(0.8 0.2 60);
+  --chart-5: oklch(0.6 0.25 20);
+  --sidebar: oklch(0.08 0.03 280);
+  --sidebar-foreground: oklch(0.95 0.02 280);
+  --sidebar-primary: oklch(0.7 0.25 280);
+  --sidebar-primary-foreground: oklch(0.05 0.02 280);
+  --sidebar-accent: oklch(0.15 0.05 280);
+  --sidebar-accent-foreground: oklch(0.9 0.02 280);
+  --sidebar-border: oklch(0.2 0.05 280);
+  --sidebar-ring: oklch(0.7 0.25 280);
+
+  /* Gaming theme colors */
+  --neon-purple: oklch(0.7 0.25 280);
+  --neon-pink: oklch(0.6 0.2 320);
+  --neon-blue: oklch(0.5 0.2 200);
+  --neon-cyan: oklch(0.6 0.15 180);
+  --neon-green: oklch(0.7 0.2 120);
+  --neon-orange: oklch(0.8 0.2 60);
+  --neon-red: oklch(0.6 0.25 20);
+  --dark-bg: oklch(0.05 0.02 280);
+  --darker-bg: oklch(0.03 0.02 280);
+  --glow-purple: 0 0 20px oklch(0.7 0.25 280 / 0.5);
+  --glow-pink: 0 0 20px oklch(0.6 0.2 320 / 0.5);
+  --glow-blue: 0 0 20px oklch(0.5 0.2 200 / 0.5);
 }
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
+  --card: oklch(0.25 0.05 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
@@ -128,7 +145,7 @@
   --primary-foreground: oklch(0.208 0.042 265.755);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
+  --muted: oklch(0.32 0.05 260.031);
   --muted-foreground: oklch(0.704 0.04 256.788);
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
@@ -155,7 +172,262 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+    min-height: 100vh;
   }
+}
+
+/* Gaming animations and effects */
+@keyframes neon-pulse {
+
+  0%,
+  100% {
+    box-shadow: var(--glow-purple);
+  }
+
+  50% {
+    box-shadow: var(--glow-pink);
+  }
+}
+
+@keyframes neon-glow {
+
+  0%,
+  100% {
+    text-shadow: 0 0 5px var(--neon-purple), 0 0 10px var(--neon-purple), 0 0 15px var(--neon-purple);
+  }
+
+  50% {
+    text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink), 0 0 15px var(--neon-pink);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: var(--progress-width, 0%);
+  }
+}
+
+/* Gaming utility classes */
+.neon-pulse {
+  animation: neon-pulse 3s ease-in-out infinite;
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.slide-in-right {
+  animation: slide-in-right 0.5s ease-out;
+}
+
+.slide-in-left {
+  animation: slide-in-left 0.5s ease-out;
+}
+
+.scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+.gaming-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.gaming-card:hover:not(.no-hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary);
+}
+
+.gaming-card.no-hover {
+  cursor: default;
+}
+
+.gaming-button {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gaming-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent);
+}
+
+.gaming-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.gaming-button:active {
+  transform: translateY(0);
+}
+
+.gaming-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.gaming-button:hover::before {
+  left: 100%;
+}
+
+.progress-bar-gaming {
+  background: var(--muted);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.progress-bar-gaming::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-purple) 0%, var(--neon-pink) 50%, var(--neon-blue) 100%);
+  width: var(--progress-width, 0%);
+  animation: progress-fill 1s ease-out;
+  box-shadow: 0 0 10px var(--neon-purple);
+}
+
+.level-badge {
+  background: linear-gradient(145deg, var(--neon-purple) 0%, var(--neon-pink) 100%);
+  color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 0 10px var(--neon-purple);
+}
+
+.xp-bar {
+  background: var(--muted);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.xp-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--neon-green) 100%);
+  width: var(--xp-width, 0%);
+  animation: progress-fill 1.5s ease-out;
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.achievement-badge {
+  background: linear-gradient(145deg, var(--neon-orange) 0%, var(--neon-red) 100%);
+  color: white;
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 0 8px var(--neon-pink);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.status-online {
+  background: var(--neon-green);
+  animation: neon-pulse 3s ease-in-out infinite;
+}
+
+.status-offline {
+  background: var(--muted-foreground);
+}
+
+.status-busy {
+  background: var(--neon-red);
+  animation: neon-pulse 2s ease-in-out infinite;
 }
