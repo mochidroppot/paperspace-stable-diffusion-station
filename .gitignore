@@ -37,7 +37,7 @@ web/dist/
 embed/dist/
 
 # IDE files
-.vscode/
+.vscode/settings.json
 .idea/
 *.swp
 *.swo
