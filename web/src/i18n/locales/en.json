@@ -68,7 +68,10 @@
       "cancelFailed": "Failed to cancel task",
       "noResourceSelected": "Please select a resource",
       "noDestinationSelected": "Please select a destination",
-      "invalidUrl": "Please enter a valid URL"
+      "invalidUrl": "Please enter a valid URL",
+      "installStarted": "Started installation of {{resourceName}}",
+      "installCompleted": "Installation of {{resourceName}} completed",
+      "installCancelled": "Installation cancelled"
     }
   },
   "dashboard": {

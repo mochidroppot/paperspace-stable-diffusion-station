@@ -1,17 +1,26 @@
+import { LayoutDashboard } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import Navigation from './Navigation'
 
 const Dashboard = () => {
+  const { t } = useTranslation()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       <Navigation />
       <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              AI Station Dashboard
-            </h1>
-            <p className="text-purple-300 text-lg">Welcome back!</p>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                <LayoutDashboard className="h-4 w-4 text-white" />
+              </div>
+              <h1 className="text-2xl font-normal text-white tracking-wide">
+                {t('dashboard.title')}
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-xs ml-8 leading-relaxed">システムの概要と管理</p>
           </div>
 
           {/* Empty State */}

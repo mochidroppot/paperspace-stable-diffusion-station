@@ -1,17 +1,22 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from 'next-themes'
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import './App.css'
 import Dashboard from './components/Dashboard'
 import ResourceInstaller from './components/ResourceInstaller'
-import './App.css'
+import { Toaster } from './components/ui/toast'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/installer" element={<ResourceInstaller />} />
-      </Routes>
-    </Router>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/installer" element={<ResourceInstaller />} />
+        </Routes>
+        <Toaster />
+      </Router>
+    </ThemeProvider>
   )
 }
 

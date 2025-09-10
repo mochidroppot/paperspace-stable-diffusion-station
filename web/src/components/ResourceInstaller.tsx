@@ -1,14 +1,19 @@
 import {
   Activity,
+  AlertTriangle,
+  CheckCircle,
   Download,
   Package,
   Play,
   Plus,
   X,
+  XCircle,
   Zap
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+import { apiFetch } from '../lib/api'
 import Navigation from './Navigation'
 import { Badge } from './ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
@@ -58,7 +63,7 @@ const ResourceInstaller = () => {
   useEffect(() => {
     const fetchExistingTasks = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/installer/tasks')
+        const response = await apiFetch('/installer/tasks')
         if (response.ok) {
           const tasks = await response.json()
           setInstallTasks(tasks.map((task: any) => ({
@@ -211,16 +216,15 @@ const ResourceInstaller = () => {
     }
 
     if (!destination) {
-      alert(t('resourceInstaller.messages.noDestinationSelected'))
+      toast.error(t('resourceInstaller.messages.noDestinationSelected'), {
+        icon: <XCircle className="h-4 w-4" />,
+      })
       return
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/installer/install', {
+      const response = await apiFetch('/installer/install', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           resource: selectedResource,
           destination: destination
@@ -245,18 +249,25 @@ const ResourceInstaller = () => {
 
       setInstallTasks(prev => [...prev, newTask])
 
+      // Show success toast
+      toast.success(t('resourceInstaller.messages.installStarted', { resourceName: selectedResource.name }), {
+        icon: <CheckCircle className="h-4 w-4" />,
+      })
+
       // Start polling
       startPolling(result.taskId)
     } catch (error) {
       console.error('Installation failed:', error)
-      alert(t('resourceInstaller.messages.installFailed'))
+      toast.error(t('resourceInstaller.messages.installFailed'), {
+        icon: <XCircle className="h-4 w-4" />,
+      })
     }
   }
 
   const startPolling = (taskId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/installer/status?taskId=${taskId}`)
+        const response = await apiFetch(`/installer/status?taskId=${taskId}`)
         if (!response.ok) {
           throw new Error('Failed to fetch task status')
         }
@@ -278,6 +289,17 @@ const ResourceInstaller = () => {
         // 完了または失敗した場合はポーリングを停止
         if (taskData.status === 'completed' || taskData.status === 'failed' || taskData.status === 'cancelled') {
           clearInterval(interval)
+
+          // Show completion toast
+          if (taskData.status === 'completed') {
+            toast.success(t('resourceInstaller.messages.installCompleted', { resourceName: taskData.resource?.name || 'Resource' }), {
+              icon: <CheckCircle className="h-4 w-4" />,
+            })
+          } else if (taskData.status === 'failed') {
+            toast.error(t('resourceInstaller.messages.installFailed', { resourceName: taskData.resource?.name || 'Resource' }), {
+              icon: <XCircle className="h-4 w-4" />,
+            })
+          }
         }
       } catch (error) {
         console.error('Failed to fetch task status:', error)
@@ -288,11 +310,8 @@ const ResourceInstaller = () => {
 
   const handleCancelTask = async (taskId: string) => {
     try {
-      const response = await fetch('http://localhost:8080/api/installer/cancel', {
+      const response = await apiFetch('/installer/cancel', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ taskId })
       })
 
@@ -309,9 +328,16 @@ const ResourceInstaller = () => {
           }
           : task
       ))
+
+      // Show cancellation toast
+      toast.warning(t('resourceInstaller.messages.installCancelled'), {
+        icon: <AlertTriangle className="h-4 w-4" />,
+      })
     } catch (error) {
       console.error('Failed to cancel task:', error)
-      alert(t('resourceInstaller.messages.cancelFailed'))
+      toast.error(t('resourceInstaller.messages.cancelFailed'), {
+        icon: <XCircle className="h-4 w-4" />,
+      })
     }
   }
 
@@ -335,11 +361,16 @@ const ResourceInstaller = () => {
       <div className="lg:ml-64 p-6 pt-16 lg:pt-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              {t('resourceInstaller.title')}
-            </h1>
-            <p className="text-muted-foreground text-lg">{t('resourceInstaller.description')}</p>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                <Package className="h-4 w-4 text-white" />
+              </div>
+              <h1 className="text-2xl font-normal text-white tracking-wide">
+                {t('resourceInstaller.title')}
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-xs ml-8 leading-relaxed">{t('resourceInstaller.description')}</p>
           </div>
 
 
@@ -352,29 +383,29 @@ const ResourceInstaller = () => {
                     <Package className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-lg font-normal text-white tracking-wide">
                       {t('resourceInstaller.resourceSelection.title')}
                     </h2>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {t('resourceInstaller.resourceSelection.description')}
                     </p>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-2">
                 {/* Content */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-visible">
                   {/* Resource Selection */}
                   {!showResourceForm && (
                     <div className="animate-in slide-in-from-right-4 duration-500">
                       {/* Preset Resources */}
                       <div>
                         <h3 className="text-sm font-medium mb-3 text-muted-foreground">{t('resourceInstaller.resourceSelection.presetResources')}</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-3 p-1">
                           {presetResources.map((resource) => (
                             <div
                               key={resource.id}
-                              className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50"
+                              className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50 m-1"
                               onClick={() => handleResourceSelect(resource)}
                             >
                               <div className="flex items-center justify-between">
@@ -397,14 +428,14 @@ const ResourceInstaller = () => {
                       </div>
 
                       {/* Custom Mode Toggle */}
-                      <div className="pt-4 border-t border-border">
+                      <div className="pt-4 border-t border-border p-1">
                         <div className="text-center">
                           <p className="text-sm text-muted-foreground mb-3">
                             {t('resourceInstaller.resourceSelection.orUseCustom')}
                           </p>
                           <button
                             onClick={handleCustomModeToggle}
-                            className="gaming-button w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-muted hover:bg-primary"
+                            className="gaming-button w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-muted hover:bg-primary m-1"
                           >
                             <Plus className="h-4 w-4 mr-2 inline" />
                             {t('resourceInstaller.resourceSelection.useCustomUrl')}
@@ -442,7 +473,7 @@ const ResourceInstaller = () => {
                               placeholder="https://example.com/resource.zip"
                               value={resourceUrl}
                               onChange={(e) => handleResourceUrlChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
                             />
                           </div>
                           <div>
@@ -454,7 +485,7 @@ const ResourceInstaller = () => {
                               placeholder="Resource Name"
                               value={resourceName}
                               onChange={(e) => handleResourceNameChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
                             />
                           </div>
                           <div>
@@ -466,7 +497,7 @@ const ResourceInstaller = () => {
                               placeholder="Optional description"
                               value={resourceDescription}
                               onChange={(e) => handleResourceDescriptionChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
                             />
                           </div>
                         </div>
@@ -536,22 +567,22 @@ const ResourceInstaller = () => {
                     <Activity className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-lg font-normal text-white tracking-wide">
                       {t('resourceInstaller.installQueue.title')}
                     </h2>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {t('resourceInstaller.installQueue.description')}
                     </p>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-2">
                 {installTasks.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 p-1">
                     {installTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="gaming-card p-4 border-border hover:border-primary/50 transition-all duration-200"
+                        className="gaming-card p-4 border-border hover:border-primary/50 transition-all duration-200 m-1"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">

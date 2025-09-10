@@ -1,10 +1,11 @@
 import i18n from 'i18next'
 import {
   Download,
+  Globe,
   LayoutDashboard,
   Menu,
-  X,
-  Zap
+  Sparkles,
+  X
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -42,15 +43,14 @@ const Navigation = () => {
         }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center px-6 py-4 border-b border-border">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <Zap className="h-5 w-5 text-white" />
+          <div className="flex items-center justify-center px-6 py-6 border-b border-border">
+            <div className="relative group">
+              {/* Main logo container with gradient background */}
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-purple-500/25 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-purple-500/40 group-hover:scale-105">
+                <Sparkles className="h-7 w-7 text-white drop-shadow-sm" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">AI Station</h1>
-                <p className="text-xs text-muted-foreground">Personal AI Environment</p>
-              </div>
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 opacity-20 blur-md -z-10"></div>
             </div>
           </div>
 
@@ -85,9 +85,7 @@ const Navigation = () => {
                 <SelectTrigger className="w-full h-9 bg-muted border-border text-foreground">
                   <SelectValue>
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg">
-                        {i18n.language === 'en' ? '🇺🇸' : '🇯🇵'}
-                      </span>
+                      <Globe className="h-4 w-4" />
                       <span className="text-sm">
                         {i18n.language === 'en' ? 'English' : '日本語'}
                       </span>
@@ -96,16 +94,10 @@ const Navigation = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-purple-500/30">
                   <SelectItem value="en" className="text-white hover:bg-purple-600/20">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg">🇺🇸</span>
-                      <span>English</span>
-                    </div>
+                    <span>English</span>
                   </SelectItem>
                   <SelectItem value="ja" className="text-white hover:bg-purple-600/20">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg">🇯🇵</span>
-                      <span>日本語</span>
-                    </div>
+                    <span>日本語</span>
                   </SelectItem>
                 </SelectContent>
               </Select>

@@ -1,31 +1,31 @@
 {
   "navigation": {
     "dashboard": "ダッシュボード",
-    "resourceInstaller": "リソースインストーラー"
+    "resourceInstaller": "リソース管理"
   },
   "resourceInstaller": {
-    "title": "リソースインストーラー",
-    "description": "モデル、拡張機能、スクリプトをインストールします",
+    "title": "リソース管理",
+    "description": "AIモデルとツールを簡単にインストール",
     "resourceSelection": {
       "title": "リソース選択",
-      "description": "インストールするリソースを選択してください",
-      "presetResources": "プリセットリソース",
+      "description": "インストールするリソースを選択",
+      "presetResources": "推奨リソース",
       "customUrl": "カスタムURL",
       "orUseCustom": "または、カスタムURLを使用",
       "useCustomUrl": "カスタムURLを使用",
-      "customModeActive": "カスタムモード有効",
-      "customModeDescription": "カスタムリソースの詳細を入力し、インストール先を選択してください",
+      "customModeActive": "カスタムモード",
+      "customModeDescription": "カスタムリソースの詳細を入力し、インストール先を選択",
       "urlPlaceholder": "リソースURLを入力",
       "namePlaceholder": "リソース名を入力",
       "descriptionPlaceholder": "説明を入力（任意）"
     },
     "installDestination": {
-      "title": "インストール先選択",
-      "description": "リソースのインストール先を選択してください"
+      "title": "インストール先",
+      "description": "リソースのインストール先を選択"
     },
     "installButton": "インストール開始",
     "installQueue": {
-      "title": "インストールキュー",
+      "title": "インストール状況",
       "description": "進行中のインストールタスク",
       "progress": "進行状況",
       "startTime": "開始時刻",
@@ -34,19 +34,19 @@
     "resources": {
       "stableDiffusion": {
         "name": "Stable Diffusion XL",
-        "description": "高品質な画像生成モデル"
+        "description": "高品質画像生成AI"
       },
       "controlNet": {
-        "name": "ControlNet拡張機能",
-        "description": "画像の構造を制御する拡張機能"
+        "name": "ControlNet",
+        "description": "画像構造制御ツール"
       },
       "faceRestore": {
-        "name": "顔修復スクリプト",
-        "description": "顔の修復を行うスクリプト"
+        "name": "顔修復ツール",
+        "description": "AI顔修復スクリプト"
       },
       "animeModel": {
-        "name": "アニメ風モデル",
-        "description": "アニメ風画像生成モデル"
+        "name": "アニメ風AI",
+        "description": "アニメ風画像生成AI"
       }
     },
     "destinations": {
@@ -68,19 +68,22 @@
       "cancelFailed": "タスクのキャンセルに失敗しました",
       "noResourceSelected": "リソースを選択してください",
       "noDestinationSelected": "インストール先を選択してください",
-      "invalidUrl": "有効なURLを入力してください"
+      "invalidUrl": "有効なURLを入力してください",
+      "installStarted": "{{resourceName}}のインストールを開始しました",
+      "installCompleted": "{{resourceName}}のインストールが完了しました",
+      "installCancelled": "インストールがキャンセルされました"
     }
   },
   "dashboard": {
     "title": "ダッシュボード",
     "stats": {
       "totalUsers": "総ユーザー数",
-      "activeConnections": "アクティブ接続数",
+      "activeConnections": "アクティブ接続",
       "systemUptime": "システム稼働時間",
       "memoryUsage": "メモリ使用率",
       "cpuUsage": "CPU使用率",
       "diskUsage": "ディスク使用率",
-      "requestsPerMinute": "1分あたりのリクエスト数",
+      "requestsPerMinute": "リクエスト/分",
       "errorRate": "エラー率"
     },
     "recentActivity": {

@@ -10,21 +10,16 @@ func NewRouter() http.Handler {
 	router := http.NewServeMux()
 
 	// Health check
-	router.HandleFunc("GET /health", CORS(handler.HealthCheckHandler))
+	router.HandleFunc("GET /health", handler.HealthCheckHandler)
 
 	// Dashboard
-	router.HandleFunc("GET /api/dashboard", CORS(handler.DashboardHandler))
-	router.HandleFunc("OPTIONS /api/dashboard", CORS(handler.DashboardHandler))
+	router.HandleFunc("GET /api/dashboard", handler.DashboardHandler)
 
 	// Resource installer
-	router.HandleFunc("POST /installer/install", CORS(handler.InstallHandler))
-	router.HandleFunc("OPTIONS /installer/install", CORS(handler.InstallHandler))
-	router.HandleFunc("GET /installer/status", CORS(handler.GetInstallStatusHandler))
-	router.HandleFunc("OPTIONS /installer/status", CORS(handler.GetInstallStatusHandler))
-	router.HandleFunc("POST /installer/cancel", CORS(handler.CancelInstallHandler))
-	router.HandleFunc("OPTIONS /installer/cancel", CORS(handler.CancelInstallHandler))
-	router.HandleFunc("GET /installer/tasks", CORS(handler.GetAllInstallTasksHandler))
-	router.HandleFunc("OPTIONS /installer/tasks", CORS(handler.GetAllInstallTasksHandler))
+	router.HandleFunc("POST /installer/install", handler.InstallHandler)
+	router.HandleFunc("GET /installer/status", handler.GetInstallStatusHandler)
+	router.HandleFunc("POST /installer/cancel", handler.CancelInstallHandler)
+	router.HandleFunc("GET /installer/tasks", handler.GetAllInstallTasksHandler)
 
 	return router
 }
