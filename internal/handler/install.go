@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"paperspace-stable-diffusion-station/internal/downloader"
 	"path/filepath"
 	"sync"
 	"time"
@@ -88,16 +89,26 @@ func processInstallation(task *InstallTask) {
 		return
 	}
 
-	// Simulate download process
-	for i := 0; i <= 100; i += 10 {
-		time.Sleep(500 * time.Millisecond) // Wait 0.5 seconds
-
+	// Check if resource has URL for download
+	if task.Resource.URL == "" {
 		installTasksMutex.Lock()
-		task.Progress = float64(i)
-		if i == 50 {
-			task.Status = "installing"
-		}
+		task.Status = "failed"
+		task.Error = "No URL provided for resource download"
+		now := time.Now()
+		task.EndTime = &now
 		installTasksMutex.Unlock()
+		return
+	}
+
+	// Download file using downloader package
+	if err := downloadFile(task, installPath); err != nil {
+		installTasksMutex.Lock()
+		task.Status = "failed"
+		task.Error = fmt.Sprintf("Download failed: %v", err)
+		now := time.Now()
+		task.EndTime = &now
+		installTasksMutex.Unlock()
+		return
 	}
 
 	// Installation completed
@@ -107,6 +118,38 @@ func processInstallation(task *InstallTask) {
 	now := time.Now()
 	task.EndTime = &now
 	installTasksMutex.Unlock()
+}
+
+// downloadFile downloads a file using the downloader package
+func downloadFile(task *InstallTask, installPath string) error {
+	// Update status to installing
+	installTasksMutex.Lock()
+	task.Status = "installing"
+	task.Progress = 50
+	installTasksMutex.Unlock()
+
+	// Generate output path
+	outputPath := downloader.GenerateOutputPath(installPath, task.Resource.URL, task.Resource.Name)
+
+	// Create download task
+	downloadTask := &downloader.DownloadTask{
+		URL:      task.Resource.URL,
+		FilePath: outputPath,
+		Progress: 0,
+	}
+
+	// Create downloader and download
+	dl := downloader.NewDownloader()
+	if err := dl.Download(downloadTask); err != nil {
+		return err
+	}
+
+	// Update progress to completion
+	installTasksMutex.Lock()
+	task.Progress = 100
+	installTasksMutex.Unlock()
+
+	return nil
 }
 
 // GetInstallStatusHandler handles getting the status of installation tasks
