@@ -46,7 +46,7 @@ const ResourceSelection = ({
     // Convert PresetResource to Resource for compatibility
     const convertPresetToResource = (preset: PresetResource): Resource => ({
         id: preset.id,
-        name: preset.name,
+        name: preset.filename || preset.name, // Use filename if available, fallback to name
         type: preset.type as 'model' | 'extension' | 'script' | 'custom',
         size: preset.size,
         description: preset.description,
@@ -69,7 +69,7 @@ const ResourceSelection = ({
 
         // Auto-fill resource details from preset
         setResourceUrl(resource.url || '')
-        setResourceName(resource.name)
+        setResourceName(preset.filename || preset.name) // Use filename if available, fallback to name
 
         // Auto-select destination based on preset
         const matchingDestination = installDestinations.find(dest =>
@@ -99,7 +99,7 @@ const ResourceSelection = ({
 
     const handleResourceNameChange = (name: string) => {
         setResourceName(name)
-        updateCustomResource()
+        // Don't call updateCustomResource immediately to avoid trimming during typing
     }
 
     const updateCustomResource = () => {
@@ -117,6 +117,10 @@ const ResourceSelection = ({
 
     const handleDestinationSelect = (destination: InstallDestination) => {
         setSelectedDestination(destination)
+        // Update custom resource when destination is selected
+        if (isCustomMode) {
+            updateCustomResource()
+        }
     }
 
     const handleBackToResource = () => {
@@ -129,6 +133,11 @@ const ResourceSelection = ({
     }
 
     const handleInstall = () => {
+        // Update custom resource before installation to ensure latest values
+        if (isCustomMode) {
+            updateCustomResource()
+        }
+
         if (!selectedResource || !selectedDestination) {
             toast.error(t('resourceInstaller.messages.noDestinationSelected'), {
                 icon: <XCircle className="h-4 w-4" />,
@@ -347,6 +356,11 @@ const ResourceSelection = ({
                                             placeholder="Resource Name"
                                             value={resourceName}
                                             onChange={(e) => handleResourceNameChange(e.target.value)}
+                                            onBlur={() => {
+                                                if (isCustomMode) {
+                                                    updateCustomResource()
+                                                }
+                                            }}
                                             disabled={!isCustomMode}
                                             className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         />

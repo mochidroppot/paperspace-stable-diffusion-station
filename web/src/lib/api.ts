@@ -76,6 +76,7 @@ export interface PresetResource {
     id: string
     name: string
     type: "checkpoint" | "extension" | "script"
+    filename?: string
     size: SizeInfo
     description: string
     tags?: string[]

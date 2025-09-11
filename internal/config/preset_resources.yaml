@@ -7,6 +7,7 @@ resources:
   - id: stable-diffusion-v1-5-archive
     name: Stable Diffusion v1.5
     type: checkpoint
+    filename: v1-5-pruned-emaonly-fp16.safetensors
     size:
       value: 2.13
       unit: GB
@@ -28,6 +29,7 @@ resources:
   - id: animagine-xl-v4-opt
     name: Animagine XL v4 Opt
     type: checkpoint
+    filename: animagine-xl-4.0-opt.safetensors
     size:
       value: 6.94
       unit: GB
