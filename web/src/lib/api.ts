@@ -2,9 +2,21 @@
  * API設定とユーティリティ関数
  */
 
+// グローバル変数の型定義
+declare global {
+    interface Window {
+        REACT_ROUTER_BASENAME?: string;
+    }
+}
+
 // APIベースURLの設定
-// 同一オリジンでAPIが/apiパス配下に配置されているため、相対パスを使用
-export const API_BASE_URL = '/api'
+// 実行時にBaseURLを取得してAPIパスを構築
+const getApiBaseUrl = (): string => {
+    const basename = window.REACT_ROUTER_BASENAME || '';
+    return `${basename}/api`;
+};
+
+export const API_BASE_URL = getApiBaseUrl()
 
 /**
  * APIエンドポイントの完全なURLを生成する

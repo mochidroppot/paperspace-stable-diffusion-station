@@ -22,10 +22,10 @@ func NewRouter() http.Handler {
 	router.HandleFunc("GET /installer/tasks", handler.GetAllInstallTasksHandler)
 
 	// Preset resources
-	router.HandleFunc("GET /api/preset-resources", handler.GetPresetResourcesHandler)
+	router.HandleFunc("GET /preset-resources", handler.GetPresetResourcesHandler)
 
 	// Installation destinations
-	router.HandleFunc("GET /api/installation-destinations", handler.GetInstallationDestinationsHandler)
+	router.HandleFunc("GET /installation-destinations", handler.GetInstallationDestinationsHandler)
 
 	return router
 }

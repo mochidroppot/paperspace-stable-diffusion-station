@@ -12,7 +12,10 @@
         "GO_ENV": "development",
         "PORT": "8080"
       },
-      "args": [],
+      "args": [
+        "--base-url",
+        "/hogehoge"
+      ],
     },
     {
       "name": "Launch Go Server with Air (Auto-reload)",
