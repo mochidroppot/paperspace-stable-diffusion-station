@@ -14,7 +14,8 @@ Write-Host "Copying frontend build to embed directory..." -ForegroundColor Yello
 if (Test-Path "web/dist") {
     Copy-Item -Path "web/dist/*" -Destination "embed/dist/" -Recurse -Force
     Write-Host "Frontend build copied successfully" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "Warning: web/dist directory not found" -ForegroundColor Red
 }
 
@@ -26,7 +27,8 @@ go build -o bin/server.exe cmd/server/main.go
 if (Test-Path "bin/server.exe") {
     Write-Host "Build completed successfully!" -ForegroundColor Green
     Write-Host "Binary location: bin/server.exe" -ForegroundColor Cyan
-} else {
+}
+else {
     Write-Host "Build failed!" -ForegroundColor Red
     exit 1
 }

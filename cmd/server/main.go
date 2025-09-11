@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"paperspace-stable-diffusion-station/internal/api"
+	"strings"
 
 	"paperspace-stable-diffusion-station/internal/config"
 	"paperspace-stable-diffusion-station/internal/version"
@@ -64,13 +65,37 @@ func main() {
 	rootPath := "/"
 	stripPrefix := "/api"
 	if cfg.BaseURL != "" {
-		apiPath = cfg.BaseURL + "/api/"
-		rootPath = cfg.BaseURL + "/"
-		stripPrefix = cfg.BaseURL + "/api"
+		// Windowsのパス変換を防ぐため、BaseURLを正規化
+		baseURL := cfg.BaseURL
+
+		// Windowsのパス変換を除去
+		baseURL = strings.TrimPrefix(baseURL, "C:/Program Files/Git")
+
+		// 先頭にスラッシュを追加
+		if !strings.HasPrefix(baseURL, "/") {
+			baseURL = "/" + baseURL
+		}
+
+		// 末尾のスラッシュを除去
+		baseURL = strings.TrimSuffix(baseURL, "/")
+
+		apiPath = baseURL + "/api/"
+		rootPath = baseURL + "/"
+		stripPrefix = baseURL + "/api"
+
+		// ルートパス（/）も追加で登録
+		mux.Handle("/", http.RedirectHandler(baseURL+"/", http.StatusMovedPermanently))
 	}
 
+	log.Printf("API Path: %s", apiPath)
+	log.Printf("Root Path: %s", rootPath)
+	log.Printf("Strip Prefix: %s", stripPrefix)
+
+	log.Printf("Registering API handler...")
 	mux.Handle(apiPath, http.StripPrefix(stripPrefix, api.NewRouter()))
+	log.Printf("Registering static file handler...")
 	mux.Handle(rootPath, http.FileServer(web.BuildHttp()))
+	log.Printf("Handlers registered successfully")
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	err := http.ListenAndServe(":"+cfg.Port, mux)

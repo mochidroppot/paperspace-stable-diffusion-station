@@ -99,6 +99,12 @@
 
 # 環境変数でポートを指定
 PORT=3000 ./bin/server
+
+# BaseURLを指定して起動
+./bin/server --base-url /myapp
+
+# 環境変数でBaseURLを指定
+BASE_URL=/myapp ./bin/server
 ```
 
 ### コマンドライン引数
@@ -108,6 +114,7 @@ PORT=3000 ./bin/server
 | `-port` | サーバーのポート番号 | 8080 または PORT 環境変数 |
 | `-log-level` | ログレベル (debug, info, warn, error) | info または LOG_LEVEL 環境変数 |
 | `-db-path` | データベースファイルのパス | ./data.db または DB_PATH 環境変数 |
+| `-base-url`, `--base-url` | サーバーのベースURL | 空文字列または BASE_URL 環境変数 |
 | `-help` | ヘルプメッセージを表示 | - |
 | `-version` | バージョン情報を表示 | - |
 
@@ -118,6 +125,7 @@ PORT=3000 ./bin/server
 | `PORT` | サーバーのポート番号 | 8080 |
 | `LOG_LEVEL` | ログレベル | info |
 | `DB_PATH` | データベースファイルのパス | ./data.db |
+| `BASE_URL` | サーバーのベースURL | 空文字列 |
 
 ### 例
 
