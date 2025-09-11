@@ -18,13 +18,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select'
 import { type InstallDestination, type Resource } from './types'
 
+interface InstallParams {
+    url: string
+    name: string
+    path: string
+    type: string
+}
+
 interface ResourceSelectionProps {
     presetResources: PresetResource[]
     isLoadingResources: boolean
     resourcesError: string | null
     installDestinations: InstallDestination[]
     destinationsError: string | null
-    onInstall: (resource: Resource, destination: InstallDestination) => void
+    onInstall: (params: InstallParams) => void
 }
 
 const ResourceSelection = ({
@@ -133,19 +140,21 @@ const ResourceSelection = ({
     }
 
     const handleInstall = () => {
-        // Update custom resource before installation to ensure latest values
-        if (isCustomMode) {
-            updateCustomResource()
-        }
-
-        if (!selectedResource || !selectedDestination) {
+        // Validate required fields
+        if (!resourceUrl.trim() || !resourceName.trim() || !selectedDestination) {
             toast.error(t('resourceInstaller.messages.noDestinationSelected'), {
                 icon: <XCircle className="h-4 w-4" />,
             })
             return
         }
 
-        onInstall(selectedResource, selectedDestination)
+        // Call onInstall with direct parameters instead of resource object
+        onInstall({
+            url: resourceUrl.trim(),
+            name: resourceName.trim(),
+            path: selectedDestination.path,
+            type: isCustomMode ? 'custom' : (selectedResource?.type || 'custom')
+        })
     }
 
     return (

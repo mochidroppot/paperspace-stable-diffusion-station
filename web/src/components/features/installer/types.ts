@@ -17,8 +17,10 @@ export interface InstallDestination {
 
 export interface InstallTask {
     id: string
-    resource: Resource
-    destination: InstallDestination
+    url: string
+    name: string
+    path: string
+    type?: string
     status: 'pending' | 'downloading' | 'installing' | 'completed' | 'failed' | 'cancelled'
     progress: number
     error?: string

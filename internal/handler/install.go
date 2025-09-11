@@ -29,12 +29,16 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validation
-	if req.Resource.Name == "" {
-		http.Error(w, "Resource name is required", http.StatusBadRequest)
+	if req.URL == "" {
+		http.Error(w, "URL is required", http.StatusBadRequest)
 		return
 	}
-	if req.Destination.Path == "" {
-		http.Error(w, "Destination path is required", http.StatusBadRequest)
+	if req.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+	if req.Path == "" {
+		http.Error(w, "Path is required", http.StatusBadRequest)
 		return
 	}
 
@@ -43,12 +47,14 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create installation task
 	task := &InstallTask{
-		ID:          taskID,
-		Resource:    req.Resource,
-		Destination: req.Destination,
-		Status:      "pending",
-		Progress:    0,
-		StartTime:   time.Now(),
+		ID:        taskID,
+		URL:       req.URL,
+		Name:      req.Name,
+		Path:      req.Path,
+		Type:      req.Type,
+		Status:    "pending",
+		Progress:  0,
+		StartTime: time.Now(),
 	}
 
 	// Store task in map
@@ -80,7 +86,7 @@ func processInstallation(task *InstallTask) {
 	installTasksMutex.Unlock()
 
 	// Create installation directory using destination path directly
-	installPath := task.Destination.Path
+	installPath := task.Path
 	if err := os.MkdirAll(installPath, 0755); err != nil {
 		installTasksMutex.Lock()
 		task.Status = "failed"
@@ -92,7 +98,7 @@ func processInstallation(task *InstallTask) {
 	}
 
 	// Check if resource has URL for download
-	if task.Resource.URL == "" {
+	if task.URL == "" {
 		installTasksMutex.Lock()
 		task.Status = "failed"
 		task.Error = "No URL provided for resource download"
@@ -131,11 +137,11 @@ func downloadFile(task *InstallTask, installPath string) error {
 	installTasksMutex.Unlock()
 
 	// Generate output path
-	outputPath := downloader.GenerateOutputPath(installPath, task.Resource.URL, task.Resource.Name)
+	outputPath := downloader.GenerateOutputPath(installPath, task.URL, task.Name)
 
 	// Create download task with progress callback
 	downloadTask := &downloader.DownloadTask{
-		URL:      task.Resource.URL,
+		URL:      task.URL,
 		FilePath: outputPath,
 		Progress: 0,
 		ProgressCallback: func(progress float64) {

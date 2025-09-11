@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { apiFetch, fetchInstallationDestinations, fetchPresetResources, type PresetResource } from '../lib/api'
 import InstallationQueue from './features/installer/InstallationQueue'
 import ResourceSelection from './features/installer/ResourceSelection'
-import { type InstallDestination, type InstallTask, type Resource } from './features/installer/types'
+import { type InstallTask, type InstallDestination } from './features/installer/types'
 import Navigation from './pages/Navigation'
 
 const ResourceInstaller = () => {
@@ -61,13 +61,15 @@ const ResourceInstaller = () => {
   }, [])
 
 
-  const handleInstall = async (resource: Resource, destination: InstallDestination) => {
+  const handleInstall = async (params: { url: string; name: string; path: string; type: string }) => {
     try {
       const response = await apiFetch('/installer/install', {
         method: 'POST',
         body: JSON.stringify({
-          resource: resource,
-          destination: destination
+          url: params.url,
+          name: params.name,
+          path: params.path,
+          type: params.type
         })
       })
 
@@ -80,8 +82,10 @@ const ResourceInstaller = () => {
       // Add new task
       const newTask: InstallTask = {
         id: result.taskId,
-        resource: resource,
-        destination: destination,
+        url: params.url,
+        name: params.name,
+        path: params.path,
+        type: params.type,
         status: 'pending',
         progress: 0,
         startTime: new Date()
@@ -90,7 +94,7 @@ const ResourceInstaller = () => {
       setInstallTasks(prev => [...prev, newTask])
 
       // Show success toast
-      toast.success(t('resourceInstaller.messages.installStarted', { resourceName: resource.name }), {
+      toast.success(t('resourceInstaller.messages.installStarted', { resourceName: params.name }), {
         icon: <CheckCircle className="h-4 w-4" />,
       })
 

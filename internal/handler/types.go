@@ -64,8 +64,10 @@ type InstallationDestinationsResponse struct {
 }
 
 type InstallRequest struct {
-	Resource    Resource           `json:"resource"`
-	Destination InstallDestination `json:"destination"`
+	URL  string `json:"url"`
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Type string `json:"type,omitempty"` // Optional: for display purposes
 }
 
 type InstallResponse struct {
@@ -75,14 +77,16 @@ type InstallResponse struct {
 }
 
 type InstallTask struct {
-	ID          string             `json:"id"`
-	Resource    Resource           `json:"resource"`
-	Destination InstallDestination `json:"destination"`
-	Status      string             `json:"status"` // pending, downloading, installing, completed, failed, cancelled
-	Progress    float64            `json:"progress"`
-	Error       string             `json:"error,omitempty"`
-	StartTime   time.Time          `json:"startTime"`
-	EndTime     *time.Time         `json:"endTime,omitempty"`
+	ID        string     `json:"id"`
+	URL       string     `json:"url"`
+	Name      string     `json:"name"`
+	Path      string     `json:"path"`
+	Type      string     `json:"type,omitempty"`
+	Status    string     `json:"status"` // pending, downloading, installing, completed, failed, cancelled
+	Progress  float64    `json:"progress"`
+	Error     string     `json:"error,omitempty"`
+	StartTime time.Time  `json:"startTime"`
+	EndTime   *time.Time `json:"endTime,omitempty"`
 }
 
 // Preset resource response data structure

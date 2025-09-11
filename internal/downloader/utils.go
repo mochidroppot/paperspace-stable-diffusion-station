@@ -38,26 +38,31 @@ func SanitizeFilename(name string) string {
 
 // GenerateOutputPath generates the full output path for a download
 func GenerateOutputPath(installPath, url, resourceName string) string {
-	// Use resource name as filename (as per requirements)
-	filename := SanitizeFilename(resourceName)
+	// First, try to extract filename from URL
+	filename := ExtractFilenameFromURL(url)
 
-	// Add appropriate extension based on URL
-	if strings.Contains(url, ".zip") {
-		filename += ".zip"
-	} else if strings.Contains(url, ".tar.gz") {
-		filename += ".tar.gz"
-	} else if strings.Contains(url, ".tar") {
-		filename += ".tar"
-	} else if strings.Contains(url, ".7z") {
-		filename += ".7z"
-	} else if strings.Contains(url, ".safetensors") {
-		filename += ".safetensors"
-	} else if strings.Contains(url, ".ckpt") {
-		filename += ".ckpt"
-	} else if strings.Contains(url, ".pt") {
-		filename += ".pt"
-	} else if strings.Contains(url, ".pth") {
-		filename += ".pth"
+	// If no filename found in URL, use resource name
+	if filename == "" {
+		filename = SanitizeFilename(resourceName)
+
+		// Add appropriate extension based on URL
+		if strings.Contains(url, ".zip") {
+			filename += ".zip"
+		} else if strings.Contains(url, ".tar.gz") {
+			filename += ".tar.gz"
+		} else if strings.Contains(url, ".tar") {
+			filename += ".tar"
+		} else if strings.Contains(url, ".7z") {
+			filename += ".7z"
+		} else if strings.Contains(url, ".safetensors") {
+			filename += ".safetensors"
+		} else if strings.Contains(url, ".ckpt") {
+			filename += ".ckpt"
+		} else if strings.Contains(url, ".pt") {
+			filename += ".pt"
+		} else if strings.Contains(url, ".pth") {
+			filename += ".pth"
+		}
 	}
 
 	return filepath.Join(installPath, filename)
