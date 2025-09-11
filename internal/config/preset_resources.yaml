@@ -43,4 +43,4 @@ resources:
       - 8GB+ VRAM (12GB+ recommended)
       - 16GB+ RAM
     destination_path: /opt/app/ComfyUI/models/checkpoints
-    url: https://huggingface.co/cagliostrolab/animagine-xl-4.0/resolve/main/animagine-xl-v4.0-opt.safetensors
+    url: https://huggingface.co/cagliostrolab/animagine-xl-4.0/resolve/main/animagine-xl-4.0-opt.safetensors
