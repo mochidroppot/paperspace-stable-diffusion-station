@@ -2,11 +2,11 @@ import { CheckCircle, Package, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { apiFetch, fetchInstallationDestinations, fetchPresetResources, type PresetResource } from '../lib/api'
-import InstallationQueue from './features/installer/InstallationQueue'
-import ResourceSelection from './features/installer/ResourceSelection'
-import { type InstallDestination, type InstallTask, type Resource } from './features/installer/types'
-import Navigation from './pages/Navigation'
+import { apiFetch, fetchInstallationDestinations, fetchPresetResources, type PresetResource } from '../../lib/api'
+import InstallationQueue from '../features/installer/InstallationQueue'
+import ResourceSelection from '../features/installer/ResourceSelection'
+import { type InstallDestination, type InstallTask, type Resource } from '../features/installer/types'
+import Navigation from './Navigation'
 
 const ResourceInstaller = () => {
   const { t } = useTranslation()
@@ -62,6 +62,20 @@ const ResourceInstaller = () => {
 
 
   const handleInstall = async (resource: Resource, destination: InstallDestination) => {
+    // まずキューにタスクを追加（即座に）
+    const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const newTask: InstallTask = {
+      id: taskId,
+      resource: resource,
+      destination: destination,
+      status: 'pending',
+      progress: 0,
+      startTime: new Date()
+    }
+
+    setInstallTasks(prev => [...prev, newTask])
+
+    // 非同期でインストールを開始
     try {
       const response = await apiFetch('/installer/install', {
         method: 'POST',
@@ -77,30 +91,29 @@ const ResourceInstaller = () => {
 
       const result = await response.json()
 
-      // Add new task
-      const newTask: InstallTask = {
-        id: result.taskId,
-        resource: resource,
-        destination: destination,
-        status: 'pending',
-        progress: 0,
-        startTime: new Date()
-      }
+      // サーバーから返されたtaskIdで更新
+      setInstallTasks(prev => prev.map(task =>
+        task.id === taskId
+          ? { ...task, id: result.taskId }
+          : task
+      ))
 
-      setInstallTasks(prev => [...prev, newTask])
-
-      // Show success toast
-      toast.success(t('resourceInstaller.messages.installStarted', { resourceName: resource.name }), {
-        icon: <CheckCircle className="h-4 w-4" />,
-      })
-
-      // Start polling
+      // ポーリングを開始
       startPolling(result.taskId)
     } catch (error) {
       console.error('Installation failed:', error)
-      toast.error(t('resourceInstaller.messages.installFailed'), {
-        icon: <XCircle className="h-4 w-4" />,
-      })
+
+      // エラーが発生した場合はキューアイテムを失敗扱いにする
+      setInstallTasks(prev => prev.map(task =>
+        task.id === taskId
+          ? {
+            ...task,
+            status: 'failed' as const,
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            endTime: new Date()
+          }
+          : task
+      ))
     }
   }
 
@@ -145,7 +158,7 @@ const ResourceInstaller = () => {
         console.error('Failed to fetch task status:', error)
         clearInterval(interval)
       }
-    }, 500) // 0.5秒間隔でポーリング（よりリアルタイムな進捗表示）
+    }, 1000) // 1秒間隔でポーリング
   }
 
   const handleCancelTask = async (taskId: string) => {

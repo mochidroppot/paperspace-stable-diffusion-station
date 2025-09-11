@@ -1,8 +1,8 @@
 import { ThemeProvider } from 'next-themes'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import './App.css'
-import Dashboard from './components/Dashboard'
-import ResourceInstaller from './components/ResourceInstaller'
+import Dashboard from './components/pages/Dashboard'
+import ResourceInstaller from './components/pages/ResourceInstaller'
 import { Toaster } from './components/ui/toast'
 
 function App() {

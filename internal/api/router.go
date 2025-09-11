@@ -12,6 +12,9 @@ func NewRouter() http.Handler {
 	// Health check
 	router.HandleFunc("GET /health", handler.HealthCheckHandler)
 
+	// Version info
+	router.HandleFunc("GET /version", handler.VersionHandler)
+
 	// Resource installer
 	router.HandleFunc("POST /installer/install", handler.InstallHandler)
 	router.HandleFunc("GET /installer/status", handler.GetInstallStatusHandler)

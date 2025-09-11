@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +17,13 @@ type DownloadTask struct {
 	FilePath string
 	Progress float64
 	Error    error
+	// Progress callback function
+	ProgressCallback func(progress float64)
+	// Additional progress information
+	DownloadedBytes int64
+	TotalBytes      int64
+	DownloadSpeed   string
+	ETA             string
 }
 
 // Downloader interface for different download methods
@@ -29,15 +38,18 @@ type WgetDownloader struct{}
 type HTTPDownloader struct{}
 
 // NewDownloader creates a new downloader instance
+// Always use wget as per requirements
 func NewDownloader() Downloader {
-	if isWgetAvailable() {
-		return &WgetDownloader{}
-	}
-	return &HTTPDownloader{}
+	return &WgetDownloader{}
 }
 
 // Download downloads a file using wget command
 func (w *WgetDownloader) Download(task *DownloadTask) error {
+	// Check if wget is available
+	if !isWgetAvailable() {
+		return fmt.Errorf("wget command is not available on this system")
+	}
+
 	// Use wget command
 	cmd := exec.Command("wget",
 		"--progress=bar:force",
@@ -111,7 +123,9 @@ func (h *HTTPDownloader) Download(task *DownloadTask) error {
 	for {
 		n, err := resp.Body.Read(buffer)
 		if n > 0 {
-			file.Write(buffer[:n])
+			if _, writeErr := file.Write(buffer[:n]); writeErr != nil {
+				return fmt.Errorf("failed to write to file: %v", writeErr)
+			}
 			progress += int64(n)
 
 			// Update progress
@@ -136,21 +150,89 @@ func (h *HTTPDownloader) Download(task *DownloadTask) error {
 func monitorWgetProgress(task *DownloadTask, stderr io.ReadCloser) {
 	// Read stderr for progress information
 	buffer := make([]byte, 1024)
+	lastProgress := float64(-1)
+
 	for {
 		n, err := stderr.Read(buffer)
 		if n > 0 {
 			output := string(buffer[:n])
-			// Parse wget progress output (simplified)
-			if strings.Contains(output, "%") {
-				// Extract percentage from wget output
-				// This is a simplified parser - wget output format can vary
-				task.Progress = 75 // Move to 75% when wget shows progress
+
+			// Parse wget progress output
+			progressInfo := parseWgetProgress(output)
+			if progressInfo.Percentage >= 0 && progressInfo.Percentage != lastProgress {
+				// Only update if progress has changed
+				task.Progress = progressInfo.Percentage
+				task.DownloadedBytes = progressInfo.DownloadedBytes
+				task.TotalBytes = progressInfo.TotalBytes
+				task.DownloadSpeed = progressInfo.DownloadSpeed
+				task.ETA = progressInfo.ETA
+				lastProgress = progressInfo.Percentage
+
+				// Call progress callback if available
+				if task.ProgressCallback != nil {
+					task.ProgressCallback(progressInfo.Percentage)
+				}
 			}
 		}
 		if err != nil {
+			// End of stream or error - this is normal when wget completes
 			break
 		}
 	}
+}
+
+// ProgressInfo contains detailed progress information
+type ProgressInfo struct {
+	Percentage      float64
+	DownloadedBytes int64
+	TotalBytes      int64
+	DownloadSpeed   string
+	ETA             string
+}
+
+// parseWgetProgress extracts detailed progress information from wget output
+func parseWgetProgress(output string) ProgressInfo {
+	// wget progress format examples:
+	// " 45%[======>                    ] 1,234,567  1.23MB/s  eta 0m 30s"
+	// " 100%[========================>] 2,345,678  2.34MB/s  in 1m 30s"
+	// " 67%[============>              ] 1,234,567  2.34MB/s  eta 0m 15s"
+
+	// Enhanced regex pattern to capture more information
+	// Matches: percentage, downloaded bytes, total bytes, speed, eta/time
+	progressRegex := regexp.MustCompile(`\s*(\d+(?:\.\d+)?)%\[.*?\]\s+([0-9,]+)\s+([0-9,]+)\s+([0-9.]+[KMGT]?B/s)\s+(?:eta|in)\s+(\d+m\s+\d+s|\d+s)`)
+
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		// Look for percentage pattern with progress bar
+		if strings.Contains(line, "%") && strings.Contains(line, "[") {
+			matches := progressRegex.FindStringSubmatch(line)
+			if len(matches) >= 6 {
+				// Parse percentage
+				if percent, err := strconv.ParseFloat(matches[1], 64); err == nil && percent >= 0 && percent <= 100 {
+					// Parse downloaded bytes
+					downloadedStr := strings.ReplaceAll(matches[2], ",", "")
+					downloadedBytes, _ := strconv.ParseInt(downloadedStr, 10, 64)
+
+					// Parse total bytes
+					totalStr := strings.ReplaceAll(matches[3], ",", "")
+					totalBytes, _ := strconv.ParseInt(totalStr, 10, 64)
+
+					// Extract speed and ETA
+					speed := matches[4]
+					eta := matches[5]
+
+					return ProgressInfo{
+						Percentage:      percent,
+						DownloadedBytes: downloadedBytes,
+						TotalBytes:      totalBytes,
+						DownloadSpeed:   speed,
+						ETA:             eta,
+					}
+				}
+			}
+		}
+	}
+	return ProgressInfo{Percentage: -1} // No progress found
 }
 
 // isWgetAvailable checks if wget command is available

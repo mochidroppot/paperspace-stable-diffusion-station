@@ -38,20 +38,26 @@ func SanitizeFilename(name string) string {
 
 // GenerateOutputPath generates the full output path for a download
 func GenerateOutputPath(installPath, url, resourceName string) string {
-	// Extract filename from URL or use resource name
-	filename := ExtractFilenameFromURL(url)
-	if filename == "" {
-		filename = SanitizeFilename(resourceName)
-		// Add appropriate extension based on URL
-		if strings.Contains(url, ".zip") {
-			filename += ".zip"
-		} else if strings.Contains(url, ".tar.gz") {
-			filename += ".tar.gz"
-		} else if strings.Contains(url, ".tar") {
-			filename += ".tar"
-		} else if strings.Contains(url, ".7z") {
-			filename += ".7z"
-		}
+	// Use resource name as filename (as per requirements)
+	filename := SanitizeFilename(resourceName)
+
+	// Add appropriate extension based on URL
+	if strings.Contains(url, ".zip") {
+		filename += ".zip"
+	} else if strings.Contains(url, ".tar.gz") {
+		filename += ".tar.gz"
+	} else if strings.Contains(url, ".tar") {
+		filename += ".tar"
+	} else if strings.Contains(url, ".7z") {
+		filename += ".7z"
+	} else if strings.Contains(url, ".safetensors") {
+		filename += ".safetensors"
+	} else if strings.Contains(url, ".ckpt") {
+		filename += ".ckpt"
+	} else if strings.Contains(url, ".pt") {
+		filename += ".pt"
+	} else if strings.Contains(url, ".pth") {
+		filename += ".pth"
 	}
 
 	return filepath.Join(installPath, filename)

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"paperspace-stable-diffusion-station/internal/downloader"
-	"path/filepath"
 	"sync"
 	"time"
 )
@@ -80,8 +79,8 @@ func processInstallation(task *InstallTask) {
 	task.Status = "downloading"
 	installTasksMutex.Unlock()
 
-	// Create installation directory
-	installPath := filepath.Join("./data", task.Destination.Path)
+	// Create installation directory using destination path directly
+	installPath := task.Destination.Path
 	if err := os.MkdirAll(installPath, 0755); err != nil {
 		installTasksMutex.Lock()
 		task.Status = "failed"
@@ -128,17 +127,23 @@ func downloadFile(task *InstallTask, installPath string) error {
 	// Update status to installing
 	installTasksMutex.Lock()
 	task.Status = "installing"
-	task.Progress = 50
+	task.Progress = 0
 	installTasksMutex.Unlock()
 
 	// Generate output path
 	outputPath := downloader.GenerateOutputPath(installPath, task.Resource.URL, task.Resource.Name)
 
-	// Create download task
+	// Create download task with progress callback
 	downloadTask := &downloader.DownloadTask{
 		URL:      task.Resource.URL,
 		FilePath: outputPath,
 		Progress: 0,
+		ProgressCallback: func(progress float64) {
+			// Update task progress in real-time
+			installTasksMutex.Lock()
+			task.Progress = progress
+			installTasksMutex.Unlock()
+		},
 	}
 
 	// Create downloader and download
