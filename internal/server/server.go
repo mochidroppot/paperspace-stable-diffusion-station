@@ -150,16 +150,13 @@ func (s *Server) serveHTML(w http.ResponseWriter, _ *http.Request, baseURL strin
 
 // modifyHTMLForBaseURL modifies HTML content for BaseURL
 func (s *Server) modifyHTMLForBaseURL(html, baseURL string) string {
-	// 絶対パスを相対パスに変換（BaseURLの深さに応じて../を追加）
-	depth := strings.Count(baseURL, "/") - 1
-	relativePrefix := strings.Repeat("../", depth)
-
-	// 絶対パスを相対パスに変換
-	html = strings.ReplaceAll(html, `href="/`, `href="`+relativePrefix)
-	html = strings.ReplaceAll(html, `src="/`, `src="`+relativePrefix)
+	// 絶対パスをBaseURL相対パスに変換
+	html = strings.ReplaceAll(html, `href="/`, `href="`+baseURL+`/`)
+	html = strings.ReplaceAll(html, `src="/`, `src="`+baseURL+`/`)
 
 	// React Router用のBaseURLを埋め込み
-	html = strings.ReplaceAll(html, `<head>`, `<head>\n    <script>window.REACT_ROUTER_BASENAME = '`+baseURL+`';</script>`)
+	html = strings.ReplaceAll(html, `<head>`, `<head>
+    <script>window.REACT_ROUTER_BASENAME = '`+baseURL+`';</script>`)
 
 	return html
 }
