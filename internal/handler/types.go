@@ -32,12 +32,18 @@ type DashboardResponse struct {
 
 // Resource installation-related data structures
 type Resource struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"` // model, extension, script, custom
-	URL         string `json:"url,omitempty"`
-	Size        string `json:"size,omitempty"`
-	Description string `json:"description,omitempty"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Type        string    `json:"type"` // model, extension, script, custom
+	URL         string    `json:"url,omitempty"`
+	Size        *SizeInfo `json:"size,omitempty"`
+	Description string    `json:"description,omitempty"`
+	Tags        []string  `json:"tags,omitempty"`
+}
+
+type SizeInfo struct {
+	Value float64 `json:"value"`
+	Unit  string  `json:"unit"`
 }
 
 type InstallDestination struct {
