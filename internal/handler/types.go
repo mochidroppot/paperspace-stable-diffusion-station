@@ -1,6 +1,10 @@
 package handler
 
-import "time"
+import (
+	"time"
+
+	"paperspace-stable-diffusion-station/internal/config"
+)
 
 // Dashboard-related data structures
 type DashboardStats struct {
@@ -43,6 +47,16 @@ type InstallDestination struct {
 	Type string `json:"type"` // models, extensions, scripts, custom
 }
 
+// Installation destination response for API
+type InstallationDestination struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
+
+type InstallationDestinationsResponse struct {
+	Destinations []InstallationDestination `json:"destinations"`
+}
+
 type InstallRequest struct {
 	Resource    Resource           `json:"resource"`
 	Destination InstallDestination `json:"destination"`
@@ -65,23 +79,7 @@ type InstallTask struct {
 	EndTime     *time.Time         `json:"endTime,omitempty"`
 }
 
-// Preset resource data structures
-type PresetResource struct {
-	ID            string   `json:"id" yaml:"id"`
-	Name          string   `json:"name" yaml:"name"`
-	Type          string   `json:"type" yaml:"type"` // model, extension, script
-	Size          string   `json:"size" yaml:"size"`
-	Description   string   `json:"description" yaml:"description"`
-	Category      string   `json:"category,omitempty" yaml:"category,omitempty"`
-	Tags          []string `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Version       string   `json:"version,omitempty" yaml:"version,omitempty"`
-	Author        string   `json:"author,omitempty" yaml:"author,omitempty"`
-	License       string   `json:"license,omitempty" yaml:"license,omitempty"`
-	Requirements  []string `json:"requirements,omitempty" yaml:"requirements,omitempty"`
-	Compatibility []string `json:"compatibility,omitempty" yaml:"compatibility,omitempty"`
-	URL           string   `json:"url,omitempty" yaml:"url,omitempty"`
-}
-
+// Preset resource response data structure
 type PresetResourcesResponse struct {
-	Resources []PresetResource `json:"resources"`
+	Resources []config.PresetResource `json:"resources"`
 }

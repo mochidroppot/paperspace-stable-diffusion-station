@@ -33,7 +33,6 @@ export interface ComboboxProps {
     emptyText?: string
     disabled?: boolean
     className?: string
-    width?: string
 }
 
 export function Combobox({
@@ -44,8 +43,7 @@ export function Combobox({
     searchPlaceholder = "Search...",
     emptyText = "No option found.",
     disabled = false,
-    className,
-    width = "w-[200px]"
+    className
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false)
 
@@ -61,18 +59,32 @@ export function Combobox({
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
-                    variant="outline"
+                    variant="input"
                     role="combobox"
                     aria-expanded={open}
                     disabled={disabled}
-                    className={cn(width, "justify-between", className)}
+                    className={cn("w-full justify-between hover:bg-muted/80 disabled:opacity-50", className)}
+                    style={{
+                        backgroundColor: 'var(--muted)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--foreground)'
+                    }}
                 >
-                    {selectedOption ? selectedOption.label : placeholder}
+                    <span className="truncate">
+                        {selectedOption ? selectedOption.label : placeholder}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className={cn(width, "p-0")}>
-                <Command>
+            <PopoverContent
+                className="w-[var(--radix-popover-trigger-width)] p-0"
+                side="bottom"
+                align="start"
+                sideOffset={4}
+                avoidCollisions={true}
+                collisionPadding={8}
+            >
+                <Command className="max-h-[200px] overflow-y-auto">
                     <CommandInput placeholder={searchPlaceholder} />
                     <CommandEmpty>{emptyText}</CommandEmpty>
                     <CommandGroup>
@@ -82,6 +94,7 @@ export function Combobox({
                                 value={option.value}
                                 disabled={option.disabled}
                                 onSelect={() => handleSelect(option.value)}
+                                className="truncate"
                             >
                                 <Check
                                     className={cn(
@@ -89,7 +102,7 @@ export function Combobox({
                                         value === option.value ? "opacity-100" : "opacity-0"
                                     )}
                                 />
-                                {option.label}
+                                <span className="truncate">{option.label}</span>
                             </CommandItem>
                         ))}
                     </CommandGroup>

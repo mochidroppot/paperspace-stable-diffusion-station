@@ -13,20 +13,20 @@ import {
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { apiFetch, fetchPresetResources, type PresetResource } from '../lib/api'
+import { apiFetch, fetchInstallationDestinations, fetchPresetResources, type PresetResource } from '../lib/api'
 import Navigation from './Navigation'
 import { Alert, AlertDescription, AlertTitle } from './ui/alert'
-import { Badge } from './ui/badge'
+import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Combobox } from './ui/combobox'
 import { Progress } from './ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 interface Resource {
   id: string
   name: string
   type: 'model' | 'extension' | 'script' | 'custom'
   url?: string
-  size?: string
+  size?: string | { value: number; unit: string }
   description?: string
 }
 
@@ -34,7 +34,7 @@ interface InstallDestination {
   id: string
   name: string
   path: string
-  type: 'models' | 'extensions' | 'scripts' | 'custom'
+  type: string
 }
 
 interface InstallTask {
@@ -61,6 +61,8 @@ const ResourceInstaller = () => {
   const [presetResources, setPresetResources] = useState<PresetResource[]>([])
   const [isLoadingResources, setIsLoadingResources] = useState(true)
   const [resourcesError, setResourcesError] = useState<string | null>(null)
+  const [installDestinations, setInstallDestinations] = useState<InstallDestination[]>([])
+  const [destinationsError, setDestinationsError] = useState<string | null>(null)
   // const customUrl = resourceUrl // Used in JSX conditionally
 
   // Component mount: fetch existing tasks and preset resources
@@ -82,9 +84,22 @@ const ResourceInstaller = () => {
         const resources = await fetchPresetResources()
         setPresetResources(resources)
         setResourcesError(null) // Clear any previous errors
+
+        // Fetch installation destinations
+        const destinations = await fetchInstallationDestinations()
+        // Convert API format to component format
+        const convertedDestinations: InstallDestination[] = destinations.map((dest) => ({
+          id: dest.path, // Use path as ID for easier matching
+          name: dest.type.charAt(0).toUpperCase() + dest.type.slice(1),
+          path: dest.path,
+          type: dest.type
+        }))
+        setInstallDestinations(convertedDestinations)
+        setDestinationsError(null) // Clear any previous errors
       } catch (error) {
         console.error('Failed to fetch data:', error)
         setResourcesError(t('resourceInstaller.messages.fetchResourcesFailed'))
+        setDestinationsError(t('resourceInstaller.messages.fetchDestinationsFailed'))
       } finally {
         setIsLoadingResources(false)
       }
@@ -92,6 +107,22 @@ const ResourceInstaller = () => {
 
     fetchData()
   }, [])
+
+  // Auto-select destination when installDestinations are loaded and a preset is selected
+  useEffect(() => {
+    if (selectedResource && installDestinations.length > 0) {
+      // Find the preset resource that matches the selected resource
+      const preset = presetResources.find(preset => preset.name === selectedResource.name)
+      if (preset?.destination_path) {
+        const matchingDestination = installDestinations.find(dest =>
+          dest.path === preset.destination_path
+        )
+        if (matchingDestination && !selectedDestination) {
+          setSelectedDestination(matchingDestination)
+        }
+      }
+    }
+  }, [installDestinations, selectedResource, presetResources, selectedDestination])
 
   // Convert PresetResource to Resource for compatibility
   const convertPresetToResource = (preset: PresetResource): Resource => ({
@@ -103,33 +134,15 @@ const ResourceInstaller = () => {
     url: preset.url
   })
 
-  // Installation destinations
-  const installDestinations: InstallDestination[] = [
-    {
-      id: '1',
-      name: t('resourceInstaller.destinations.models'),
-      path: '/models/stable-diffusion',
-      type: 'models'
-    },
-    {
-      id: '2',
-      name: t('resourceInstaller.destinations.extensions'),
-      path: '/extensions',
-      type: 'extensions'
-    },
-    {
-      id: '3',
-      name: t('resourceInstaller.destinations.scripts'),
-      path: '/scripts',
-      type: 'scripts'
-    },
-    {
-      id: '4',
-      name: t('resourceInstaller.destinations.custom'),
-      path: '/custom',
-      type: 'custom'
-    }
-  ]
+  // Installation destinations are now loaded from API
+
+  // Utility function to truncate long paths
+  const truncatePath = (path: string, maxLength: number = 50) => {
+    if (path.length <= maxLength) return path
+    const start = path.substring(0, 20)
+    const end = path.substring(path.length - 20)
+    return `${start}...${end}`
+  }
 
   const handleResourceSelect = (preset: PresetResource) => {
     const resource = convertPresetToResource(preset)
@@ -140,6 +153,8 @@ const ResourceInstaller = () => {
     setResourceUrl(resource.url || '')
     setResourceName(resource.name)
     setResourceDescription(resource.description || '')
+
+    // Auto-select destination will be handled by useEffect
 
     // Show resource form
     setShowResourceForm(true)
@@ -368,7 +383,7 @@ const ResourceInstaller = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Panel - Resource Selection and Installation */}
-            <Card className="gaming-card no-hover min-h-[600px]">
+            <Card className="card no-hover min-h-[600px]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
@@ -396,7 +411,7 @@ const ResourceInstaller = () => {
                         {isLoadingResources ? (
                           <div className="space-y-3 p-1">
                             {[1, 2, 3, 4].map((i) => (
-                              <div key={i} className="gaming-card p-4 border-border m-1 animate-pulse">
+                              <div key={i} className="card p-4 border-border m-1 animate-pulse">
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1">
                                     <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
@@ -425,7 +440,7 @@ const ResourceInstaller = () => {
                             {presetResources.map((resource) => (
                               <div
                                 key={resource.id}
-                                className="gaming-card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50 m-1"
+                                className="card p-4 cursor-pointer transition-all duration-200 hover:scale-102 border-border hover:border-primary/50 m-1"
                                 onClick={() => handleResourceSelect(resource)}
                               >
                                 <div className="flex items-center justify-between">
@@ -435,7 +450,7 @@ const ResourceInstaller = () => {
                                   </div>
                                   <div className="text-right space-y-1">
                                     <div className="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
-                                      {resource.size}
+                                      {typeof resource.size === 'string' ? resource.size : `${resource.size.value} ${resource.size.unit}`}
                                     </div>
                                     <div className="px-2 py-1 bg-accent/20 text-accent rounded text-xs">
                                       {resource.type}
@@ -456,7 +471,7 @@ const ResourceInstaller = () => {
                           </p>
                           <button
                             onClick={handleCustomModeToggle}
-                            className="gaming-button w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-muted hover:bg-primary m-1"
+                            className="button w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-muted hover:bg-primary m-1"
                           >
                             <Plus className="h-4 w-4 mr-2 inline" />
                             {t('resourceInstaller.resourceSelection.useCustomUrl')}
@@ -472,15 +487,17 @@ const ResourceInstaller = () => {
                       <div className="space-y-4">
                         {/* Back Button */}
                         <div className="flex justify-start">
-                          <button
+                          <Button
                             onClick={handleBackToResource}
-                            className="gaming-button px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-muted hover:bg-muted/80"
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
                           >
-                            <svg className="h-4 w-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                             リソース選択に戻る
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Resource Form */}
@@ -494,7 +511,8 @@ const ResourceInstaller = () => {
                               placeholder="https://example.com/resource.zip"
                               value={resourceUrl}
                               onChange={(e) => handleResourceUrlChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              disabled={!isCustomMode}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
                           <div>
@@ -506,7 +524,8 @@ const ResourceInstaller = () => {
                               placeholder="Resource Name"
                               value={resourceName}
                               onChange={(e) => handleResourceNameChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              disabled={!isCustomMode}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
                           <div>
@@ -518,7 +537,8 @@ const ResourceInstaller = () => {
                               placeholder="Optional description"
                               value={resourceDescription}
                               onChange={(e) => handleResourceDescriptionChange(e.target.value)}
-                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50"
+                              disabled={!isCustomMode}
+                              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card bg-muted text-foreground placeholder-muted-foreground border-border hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
                         </div>
@@ -528,48 +548,54 @@ const ResourceInstaller = () => {
                           <label className="block text-sm font-medium text-muted-foreground mb-2">
                             {t('resourceInstaller.installDestination.title')}
                           </label>
-                          <Combobox
-                            options={installDestinations.map(dest => ({
-                              value: dest.id,
-                              label: dest.name,
-                              disabled: false
-                            }))}
-                            value={selectedDestination?.id || ''}
-                            onValueChange={(value) => {
-                              const destination = installDestinations.find(dest => dest.id === value)
-                              if (destination) {
-                                handleDestinationSelect(destination)
-                              }
-                            }}
-                            placeholder={t('resourceInstaller.installDestination.description')}
-                            searchPlaceholder="Search destinations..."
-                            emptyText="No destinations found."
-                            width="w-full"
-                          />
-                          {selectedDestination && (
-                            <div className="mt-3 p-3 bg-muted rounded-lg">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4 className="font-medium text-foreground">{selectedDestination.name}</h4>
-                                  <p className="text-sm text-muted-foreground">{selectedDestination.path}</p>
-                                </div>
-                                <Badge variant="outline">{selectedDestination.type}</Badge>
-                              </div>
+                          {destinationsError ? (
+                            <div className="p-3">
+                              <Alert variant="destructive" className="border-red-500/20 bg-red-500/10">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle className="text-red-400">{t('resourceInstaller.messages.errorOccurred')}</AlertTitle>
+                                <AlertDescription className="text-red-300">
+                                  {destinationsError}
+                                </AlertDescription>
+                              </Alert>
                             </div>
+                          ) : (
+                            <Select
+                              value={selectedDestination?.id || ''}
+                              onValueChange={(value) => {
+                                const destination = installDestinations.find(dest => dest.id === value)
+                                if (destination) {
+                                  handleDestinationSelect(destination)
+                                }
+                              }}
+                              disabled={!isCustomMode}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('resourceInstaller.installDestination.description')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {installDestinations.map((dest) => (
+                                  <SelectItem key={dest.id} value={dest.id}>
+                                    {`${dest.name}: ${truncatePath(dest.path)}`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           )}
                         </div>
 
                         {/* Install Button */}
                         {selectedResource && selectedDestination && (
                           <div className="flex justify-center pt-4">
-                            <button
+                            <Button
                               onClick={handleInstall}
-                              className="gaming-button px-12 py-4 text-lg font-bold rounded-lg transition-all duration-200"
+                              variant="default"
+                              size="lg"
+                              className="px-12 py-4 text-lg font-bold gap-3"
                             >
-                              <Play className="h-5 w-5 mr-3 inline" />
+                              <Play className="h-5 w-5" />
                               {t('resourceInstaller.installButton')}
-                              <Zap className="h-5 w-5 ml-2 inline" />
-                            </button>
+                              <Zap className="h-5 w-5" />
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -581,7 +607,7 @@ const ResourceInstaller = () => {
             </Card>
 
             {/* Right Panel - Download Queue */}
-            <Card className="gaming-card no-hover min-h-[600px]">
+            <Card className="card no-hover min-h-[600px]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
@@ -603,7 +629,7 @@ const ResourceInstaller = () => {
                     {installTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="gaming-card p-4 border-border hover:border-primary/50 transition-all duration-200 m-1"
+                        className="card p-4 border-border hover:border-primary/50 transition-all duration-200 m-1"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">

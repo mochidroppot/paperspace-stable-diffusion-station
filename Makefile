@@ -19,8 +19,12 @@ build-backend:
 dev:
 	cd web && npm run dev
 
-# バックエンド開発サーバー起動
+# バックエンド開発サーバー起動（自動リロード付き）
 dev-backend:
+	air
+
+# バックエンド開発サーバー起動（通常）
+dev-backend-simple:
 	go run cmd/server/main.go
 
 # フロントエンド開発サーバー起動

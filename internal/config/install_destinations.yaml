@@ -1,0 +1,44 @@
+# Installation Destinations Configuration
+# This file contains the list of available installation destinations for the Stable Diffusion Station
+# Each destination includes type and absolute path information
+
+destinations:
+  # Model checkpoints
+  - type: checkpoints
+    path: /opt/app/ComfyUI/models/checkpoints
+    description: Main model checkpoints directory
+
+  # LoRA adapters
+  - type: loras
+    path: /opt/app/ComfyUI/models/loras
+    description: LoRA adapter models directory
+
+  # VAE models
+  - type: vae
+    path: /opt/app/ComfyUI/models/vae
+    description: VAE models directory
+
+  # Text embeddings
+  - type: embeddings
+    path: /opt/app/ComfyUI/models/embeddings
+    description: Text embedding models directory
+
+  # Upscaling models
+  - type: upscale_models
+    path: /opt/app/ComfyUI/models/upscale_models
+    description: Image upscaling models directory
+
+  # ControlNet models
+  - type: controlnet
+    path: /opt/app/ComfyUI/models/controlnets
+    description: ControlNet models directory
+
+  # Extensions
+  - type: extensions
+    path: /opt/app/ComfyUI/models/extensions
+    description: ComfyUI extensions directory
+
+  # Scripts
+  - type: scripts
+    path: /opt/app/ComfyUI/models/scripts
+    description: ComfyUI scripts directory

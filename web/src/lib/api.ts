@@ -55,24 +55,40 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}): Pro
 /**
  * 推奨リソース関連のAPI型定義
  */
+export interface SizeInfo {
+    value: number
+    unit: string
+}
+
 export interface PresetResource {
     id: string
     name: string
-    type: "model" | "extension" | "script"
-    size: string
+    type: "checkpoint" | "extension" | "script"
+    size: SizeInfo
     description: string
-    category?: string
     tags?: string[]
     version?: string
     author?: string
     license?: string
     requirements?: string[]
-    compatibility?: string[]
+    destination_path?: string
     url?: string
 }
 
 export interface PresetResourcesResponse {
     resources: PresetResource[]
+}
+
+/**
+ * Installation destination data structure
+ */
+export interface InstallationDestination {
+    type: string
+    path: string
+}
+
+export interface InstallationDestinationsResponse {
+    destinations: InstallationDestination[]
 }
 
 /**
@@ -91,6 +107,26 @@ export const fetchPresetResources = async (): Promise<PresetResource[]> => {
         return data.resources
     } catch (error) {
         console.error('Error fetching preset resources:', error)
+        throw error
+    }
+}
+
+/**
+ * インストール先一覧を取得する
+ * @returns Promise<InstallationDestination[]>
+ */
+export const fetchInstallationDestinations = async (): Promise<InstallationDestination[]> => {
+    try {
+        const response = await apiFetch('/installation-destinations')
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch installation destinations: ${response.status} ${response.statusText}`)
+        }
+
+        const data: InstallationDestinationsResponse = await response.json()
+        return data.destinations
+    } catch (error) {
+        console.error('Error fetching installation destinations:', error)
         throw error
     }
 }

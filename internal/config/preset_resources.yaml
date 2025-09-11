@@ -1,0 +1,46 @@
+# Preset Resources Configuration
+# This file contains the list of available preset resources for the Stable Diffusion Station
+# Each resource includes metadata and download information
+
+resources:
+  # Image Generation Models
+  - id: stable-diffusion-v1-5-archive
+    name: Stable Diffusion v1.5
+    type: checkpoint
+    size:
+      value: 2.13
+      unit: GB
+    description: Archived re-upload of Stable Diffusion v1.5 from 2022, originally from RunwayML. This model is several major generational upgrades behind but preserved for technical & accessibility reasons (legacy model testing). FP16 converted version with metadata header.
+    tags:
+      - text-to-image
+      - image
+    version: 1.0
+    author: RunwayML
+    license: CreativeML Open RAIL-M
+    requirements:
+      - CUDA 10.2+
+      - 4GB+ VRAM (8GB+ recommended)
+      - 16GB+ RAM
+    destination_path: /opt/app/ComfyUI/models/checkpoints
+    url: https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors
+
+  # Anime Image Generation Models
+  - id: animagine-xl-v4-opt
+    name: Animagine XL v4 Opt
+    type: checkpoint
+    size:
+      value: 6.94
+      unit: GB
+    description: Anime-style image generation model based on Stable Diffusion XL 1.0. Fine-tuned on 8.4M diverse anime-style images with 2650 GPU hours. Optimized for stability, anatomical accuracy, noise reduction, and improved color richness and accuracy.
+    tags:
+      - text-to-image
+      - anime
+    version: 4.0
+    author: Cagliostro Research Lab
+    license: CreativeML Open RAIL++-M
+    requirements:
+      - CUDA 11.8+
+      - 8GB+ VRAM (12GB+ recommended)
+      - 16GB+ RAM
+    destination_path: /opt/app/ComfyUI/models/checkpoints
+    url: https://huggingface.co/cagliostrolab/animagine-xl-4.0/resolve/main/animagine-xl-v4.0-opt.safetensors

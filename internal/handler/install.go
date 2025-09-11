@@ -68,7 +68,10 @@ func InstallHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // processInstallation executes the installation process
@@ -177,7 +180,10 @@ func GetInstallStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(task)
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // CancelInstallHandler handles cancelling installation tasks
@@ -216,7 +222,10 @@ func CancelInstallHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // GetAllInstallTasksHandler handles getting all installation tasks
@@ -235,5 +244,8 @@ func GetAllInstallTasksHandler(w http.ResponseWriter, r *http.Request) {
 	installTasksMutex.RUnlock()
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(tasks)
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }

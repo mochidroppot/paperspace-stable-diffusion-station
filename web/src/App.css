@@ -119,7 +119,7 @@
   --sidebar-border: oklch(0.2 0.05 280);
   --sidebar-ring: oklch(0.7 0.25 280);
 
-  /* Gaming theme colors */
+  /* Theme colors */
   --neon-purple: oklch(0.7 0.25 280);
   --neon-pink: oklch(0.6 0.2 320);
   --neon-blue: oklch(0.5 0.2 200);
@@ -133,7 +133,7 @@
   --glow-pink: 0 0 20px oklch(0.6 0.2 320 / 0.5);
   --glow-blue: 0 0 20px oklch(0.5 0.2 200 / 0.5);
 
-  /* Toast colors - Gaming theme */
+  /* Toast colors - Theme */
   --success-bg: oklch(0.12 0.12 120 / 0.95);
   --success-text: oklch(0.95 0.08 120);
   --success-border: oklch(0.6 0.2 120);
@@ -181,7 +181,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
 
-  /* Toast colors for dark theme - Enhanced gaming colors */
+  /* Toast colors for dark theme - Enhanced colors */
   --success-bg: oklch(0.08 0.15 120 / 0.98);
   --success-text: oklch(0.98 0.1 120);
   --success-border: oklch(0.7 0.25 120);
@@ -208,7 +208,7 @@
   }
 }
 
-/* Gaming animations and effects */
+/* Animations and effects */
 @keyframes neon-pulse {
 
   0%,
@@ -291,7 +291,7 @@
   }
 }
 
-/* Gaming utility classes */
+/* Utility classes */
 .neon-pulse {
   animation: neon-pulse 3s ease-in-out infinite;
 }
@@ -312,7 +312,7 @@
   animation: scale-in 0.3s ease-out;
 }
 
-.gaming-card {
+.card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -320,17 +320,17 @@
   transition: all 0.2s ease;
 }
 
-.gaming-card:hover:not(.no-hover) {
+.card:hover:not(.no-hover) {
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   border-color: var(--primary);
 }
 
-.gaming-card.no-hover {
+.card.no-hover {
   cursor: default;
 }
 
-.gaming-button {
+.button {
   background: var(--primary);
   border: 1px solid var(--primary);
   color: var(--primary-foreground);
@@ -341,23 +341,23 @@
   overflow: hidden;
 }
 
-.gaming-button:hover:not(:disabled) {
+.button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   border-color: var(--accent);
 }
 
-.gaming-button:disabled {
+.button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
-.gaming-button:active {
+.button:active {
   transform: translateY(0);
 }
 
-.gaming-button::before {
+.button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -368,11 +368,11 @@
   transition: left 0.5s;
 }
 
-.gaming-button:hover::before {
+.button:hover::before {
   left: 100%;
 }
 
-.progress-bar-gaming {
+.progress-bar {
   background: var(--muted);
   border-radius: 10px;
   overflow: hidden;
@@ -380,7 +380,7 @@
   position: relative;
 }
 
-.progress-bar-gaming::before {
+.progress-bar::before {
   content: '';
   position: absolute;
   top: 0;
@@ -460,7 +460,7 @@
   animation: neon-pulse 2s ease-in-out infinite;
 }
 
-/* Toast custom styles - Enhanced gaming theme */
+/* Toast custom styles - Enhanced theme */
 .toaster [data-sonner-toast] {
   border-radius: var(--radius);
   backdrop-filter: blur(12px);

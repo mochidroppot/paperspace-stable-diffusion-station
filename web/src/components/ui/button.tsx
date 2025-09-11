@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "bg-gray-100 text-gray-900 shadow-xs hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:bg-gray-200 disabled:text-gray-500 dark:disabled:bg-gray-700 dark:disabled:text-gray-400",
         ghost:
           "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white disabled:text-gray-400 dark:disabled:text-gray-500",
+        input:
+          "border border-gray-300 bg-gray-50 text-gray-900 shadow-xs hover:bg-gray-100 hover:text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200",
         link: "text-blue-600 underline-offset-4 hover:underline dark:text-blue-400 disabled:text-gray-400 dark:disabled:text-gray-500",
       },
       size: {

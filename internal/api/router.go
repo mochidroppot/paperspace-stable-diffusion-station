@@ -21,5 +21,8 @@ func NewRouter() http.Handler {
 	// Preset resources
 	router.HandleFunc("GET /api/preset-resources", handler.GetPresetResourcesHandler)
 
+	// Installation destinations
+	router.HandleFunc("GET /api/installation-destinations", handler.GetInstallationDestinationsHandler)
+
 	return router
 }

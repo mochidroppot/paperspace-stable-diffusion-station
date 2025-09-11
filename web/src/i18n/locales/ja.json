@@ -73,6 +73,7 @@
       "installCompleted": "{{resourceName}}のインストールが完了しました",
       "installCancelled": "インストールがキャンセルされました",
       "fetchResourcesFailed": "推奨リソースの取得に失敗しました。ページを再読み込みしてください。",
+      "fetchDestinationsFailed": "インストール先の取得に失敗しました。ページを再読み込みしてください。",
       "errorOccurred": "エラーが発生しました"
     }
   },

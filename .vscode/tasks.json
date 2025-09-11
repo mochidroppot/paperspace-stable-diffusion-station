@@ -9,6 +9,9 @@
         "run",
         "dev"
       ],
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
       "group": "build",
       "presentation": {
         "echo": true,
@@ -16,10 +19,7 @@
         "focus": false,
         "panel": "new"
       },
-      "problemMatcher": [],
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
+      "problemMatcher": []
     },
     {
       "label": "npm: build",
@@ -29,6 +29,9 @@
         "run",
         "build"
       ],
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
       "group": "build",
       "presentation": {
         "echo": true,
@@ -45,6 +48,9 @@
       "args": [
         "install"
       ],
+      "options": {
+        "cwd": "${workspaceFolder}/web"
+      },
       "group": "build",
       "presentation": {
         "echo": true,
@@ -87,6 +93,39 @@
         "panel": "new"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "air-build",
+      "type": "shell",
+      "command": "go",
+      "args": [
+        "build",
+        "-o",
+        "./tmp/main",
+        "./cmd/server"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "air: start",
+      "type": "shell",
+      "command": "air",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "isBackground": true
     }
   ]
 }
