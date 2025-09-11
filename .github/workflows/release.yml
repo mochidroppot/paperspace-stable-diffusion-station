@@ -2,11 +2,13 @@ name: Release
 
 on:
   release:
-    types: [published]  # リリースが公開された時に実行
+    types: [published]
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout code
@@ -50,84 +52,23 @@ jobs:
       run: |
         GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ steps.get_version.outputs.VERSION }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-linux-arm64 ./cmd/server/main.go
         
-    - name: Build Windows AMD64 binary
-      run: |
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ steps.get_version.outputs.VERSION }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-windows.exe ./cmd/server/main.go
-        
-    - name: Build macOS AMD64 binary
-      run: |
-        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ steps.get_version.outputs.VERSION }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-macos-amd64 ./cmd/server/main.go
-        
-    - name: Build macOS ARM64 binary
-      run: |
-        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ steps.get_version.outputs.VERSION }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-macos-arm64 ./cmd/server/main.go
-        
     - name: Create release archive
       run: |
         mkdir -p release
         cp bin/server-linux release/
         cp bin/server-linux-arm64 release/
-        cp bin/server-windows.exe release/
-        cp bin/server-macos-amd64 release/
-        cp bin/server-macos-arm64 release/
         cp -r web/dist release/web/
         cp README.md release/
         cp LICENSE release/
         cp env.example release/
         
         # Create archives for each platform
-        tar -czf paperspace-stable-diffusion-station-linux-amd64.tar.gz -C release server-linux web README.md LICENSE env.example
-        tar -czf paperspace-stable-diffusion-station-linux-arm64.tar.gz -C release server-linux-arm64 web README.md LICENSE env.example
-        zip -r paperspace-stable-diffusion-station-windows-amd64.zip release/server-windows.exe release/web release/README.md release/LICENSE release/env.example
-        tar -czf paperspace-stable-diffusion-station-macos-amd64.tar.gz -C release server-macos-amd64 web README.md LICENSE env.example
-        tar -czf paperspace-stable-diffusion-station-macos-arm64.tar.gz -C release server-macos-arm64 web README.md LICENSE env.example
+        zip -r paperspace-stable-diffusion-station-linux-amd64.zip release/server-linux release/web release/README.md release/LICENSE release/env.example
+        zip -r paperspace-stable-diffusion-station-linux-arm64.zip release/server-linux-arm64 release/web release/README.md release/LICENSE release/env.example
         
     - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: paperspace-stable-diffusion-station-linux-amd64.tar.gz
-        asset_name: paperspace-stable-diffusion-station-linux-amd64.tar.gz
-        asset_content_type: application/gzip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload Linux ARM64 Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: paperspace-stable-diffusion-station-linux-arm64.tar.gz
-        asset_name: paperspace-stable-diffusion-station-linux-arm64.tar.gz
-        asset_content_type: application/gzip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload Windows Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: paperspace-stable-diffusion-station-windows-amd64.zip
-        asset_name: paperspace-stable-diffusion-station-windows-amd64.zip
-        asset_content_type: application/zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload macOS AMD64 Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: paperspace-stable-diffusion-station-macos-amd64.tar.gz
-        asset_name: paperspace-stable-diffusion-station-macos-amd64.tar.gz
-        asset_content_type: application/gzip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload macOS ARM64 Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: paperspace-stable-diffusion-station-macos-arm64.tar.gz
-        asset_name: paperspace-stable-diffusion-station-macos-arm64.tar.gz
-        asset_content_type: application/gzip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        files: |
+          paperspace-stable-diffusion-station-linux-amd64.zip
+          paperspace-stable-diffusion-station-linux-arm64.zip
