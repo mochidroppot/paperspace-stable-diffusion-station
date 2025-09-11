@@ -20,6 +20,7 @@ func main() {
 		port     = flag.String("port", "", "Port to run the server on (default: 8080 or PORT env var)")
 		logLevel = flag.String("log-level", "", "Log level (debug, info, warn, error) (default: info or LOG_LEVEL env var)")
 		dbPath   = flag.String("db-path", "", "Database file path (default: ./data.db or DB_PATH env var)")
+		baseURL  = flag.String("base-url", "", "Base URL for the server (default: empty or BASE_URL env var)")
 		help     = flag.Bool("help", false, "Show this help message")
 		version  = flag.Bool("version", false, "Show version information")
 	)
@@ -50,12 +51,26 @@ func main() {
 	if *dbPath != "" {
 		cfg.DBPath = *dbPath
 	}
+	if *baseURL != "" {
+		cfg.BaseURL = *baseURL
+	}
 
 	logger.Init(cfg.LogLevel)
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/", http.StripPrefix("/api", api.NewRouter()))
-	mux.Handle("/", http.FileServer(web.BuildHttp()))
+
+	// BaseURLが設定されている場合のパス設定
+	apiPath := "/api/"
+	rootPath := "/"
+	stripPrefix := "/api"
+	if cfg.BaseURL != "" {
+		apiPath = cfg.BaseURL + "/api/"
+		rootPath = cfg.BaseURL + "/"
+		stripPrefix = cfg.BaseURL + "/api"
+	}
+
+	mux.Handle(apiPath, http.StripPrefix(stripPrefix, api.NewRouter()))
+	mux.Handle(rootPath, http.FileServer(web.BuildHttp()))
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	err := http.ListenAndServe(":"+cfg.Port, mux)
@@ -77,6 +92,8 @@ func showHelp() {
 	fmt.Println("        Log level: debug, info, warn, error (default: info or LOG_LEVEL env var)")
 	fmt.Println("  -db-path string")
 	fmt.Println("        Database file path (default: ./data.db or DB_PATH env var)")
+	fmt.Println("  -base-url, --base-url string")
+	fmt.Println("        Base URL for the server (default: empty or BASE_URL env var)")
 	fmt.Println("  -help")
 	fmt.Println("        Show this help message")
 	fmt.Println("  -version")
@@ -86,11 +103,14 @@ func showHelp() {
 	fmt.Println("  PORT        Port to run the server on")
 	fmt.Println("  LOG_LEVEL   Log level (debug, info, warn, error)")
 	fmt.Println("  DB_PATH     Database file path")
+	fmt.Println("  BASE_URL    Base URL for the server")
 	fmt.Println("")
 	fmt.Println("Examples:")
 	fmt.Println("  server -port 3000")
 	fmt.Println("  server -port 8080 -log-level debug")
-	fmt.Println("  PORT=3000 server")
+	fmt.Println("  server --base-url /myapp")
+	fmt.Println("  server -base-url /myapp")
+	fmt.Println("  PORT=3000 BASE_URL=/myapp server")
 }
 
 func showVersion() {

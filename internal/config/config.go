@@ -18,6 +18,7 @@ type Config struct {
 	Port     string
 	LogLevel string
 	DBPath   string
+	BaseURL  string
 }
 
 // Size information structure
@@ -62,6 +63,7 @@ func Load() *Config {
 		Port:     getEnv("PORT", "8080"),
 		LogLevel: getEnv("LOG_LEVEL", "info"),
 		DBPath:   getEnv("DB_PATH", "./data.db"),
+		BaseURL:  getEnv("BASE_URL", ""),
 	}
 }
 
