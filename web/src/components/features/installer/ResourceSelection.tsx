@@ -46,7 +46,7 @@ const ResourceSelection = ({
     // Convert PresetResource to Resource for compatibility
     const convertPresetToResource = (preset: PresetResource): Resource => ({
         id: preset.id,
-        name: preset.filename || preset.name, // Use filename if available, fallback to name
+        name: preset.name, // Keep original name for display
         type: preset.type as 'model' | 'extension' | 'script' | 'custom',
         size: preset.size,
         description: preset.description,

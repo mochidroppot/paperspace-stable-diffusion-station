@@ -32,6 +32,7 @@ type PresetResource struct {
 	ID              string   `json:"id" yaml:"id"`
 	Name            string   `json:"name" yaml:"name"`
 	Type            string   `json:"type" yaml:"type"` // checkpoint, extension, script
+	Filename        string   `json:"filename,omitempty" yaml:"filename,omitempty"`
 	Size            SizeInfo `json:"size" yaml:"size"`
 	Description     string   `json:"description" yaml:"description"`
 	Tags            []string `json:"tags,omitempty" yaml:"tags,omitempty"`
