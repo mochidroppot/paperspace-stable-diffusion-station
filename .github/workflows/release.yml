@@ -54,19 +54,22 @@ jobs:
         
     - name: Create release archive
       run: |
-        mkdir -p studio-amd64 studio-arm64
-        cp bin/studio-linux-amd64 studio-amd64/studio
-        cp bin/studio-linux-arm64 studio-arm64/studio
-        cp README.md studio-amd64/
-        cp README.md studio-arm64/
-        cp LICENSE studio-amd64/
-        cp LICENSE studio-arm64/
-        cp env.example studio-amd64/
-        cp env.example studio-arm64/
+        # Create AMD64 archive
+        mkdir -p studio
+        cp bin/studio-linux-amd64 studio/studio
+        cp README.md studio/
+        cp LICENSE studio/
+        cp env.example studio/
+        zip -r paperspace-stable-diffusion-station-linux-amd64.zip studio/
         
-        # Create archives for each platform
-        zip -r paperspace-stable-diffusion-station-linux-amd64.zip studio-amd64/
-        zip -r paperspace-stable-diffusion-station-linux-arm64.zip studio-arm64/
+        # Create ARM64 archive
+        rm -rf studio
+        mkdir -p studio
+        cp bin/studio-linux-arm64 studio/studio
+        cp README.md studio/
+        cp LICENSE studio/
+        cp env.example studio/
+        zip -r paperspace-stable-diffusion-station-linux-arm64.zip studio/
         
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
