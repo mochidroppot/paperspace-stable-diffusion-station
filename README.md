@@ -82,3 +82,55 @@
 ├── .env.example
 └── README.md
 ```
+
+## 使用方法
+
+### サーバーの起動
+
+```bash
+# デフォルトポート（8080）で起動
+./bin/server
+
+# 特定のポートで起動
+./bin/server -port 3000
+
+# ログレベルを指定して起動
+./bin/server -port 8080 -log-level debug
+
+# 環境変数でポートを指定
+PORT=3000 ./bin/server
+```
+
+### コマンドライン引数
+
+| 引数 | 説明 | デフォルト |
+|------|------|------------|
+| `-port` | サーバーのポート番号 | 8080 または PORT 環境変数 |
+| `-log-level` | ログレベル (debug, info, warn, error) | info または LOG_LEVEL 環境変数 |
+| `-db-path` | データベースファイルのパス | ./data.db または DB_PATH 環境変数 |
+| `-help` | ヘルプメッセージを表示 | - |
+| `-version` | バージョン情報を表示 | - |
+
+### 環境変数
+
+| 変数名 | 説明 | デフォルト |
+|--------|------|------------|
+| `PORT` | サーバーのポート番号 | 8080 |
+| `LOG_LEVEL` | ログレベル | info |
+| `DB_PATH` | データベースファイルのパス | ./data.db |
+
+### 例
+
+```bash
+# ヘルプを表示
+./bin/server -help
+
+# バージョン情報を表示
+./bin/server -version
+
+# ポート3000でデバッグモードで起動
+./bin/server -port 3000 -log-level debug
+
+# 環境変数を使用
+PORT=3000 LOG_LEVEL=debug ./bin/server
+```

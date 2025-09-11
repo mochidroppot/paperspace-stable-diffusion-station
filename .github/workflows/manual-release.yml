@@ -1,0 +1,134 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a prerelease?'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+        
+    - name: Install frontend dependencies
+      run: |
+        cd web
+        npm ci
+        
+    - name: Build frontend
+      run: |
+        cd web
+        npm run build
+        
+    - name: Get git commit hash
+      id: get_commit
+      run: echo "COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      
+    - name: Build Linux AMD64 binary
+      run: |
+        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ github.event.inputs.version }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-linux ./cmd/server/main.go
+        
+    - name: Build Linux ARM64 binary
+      run: |
+        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ github.event.inputs.version }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-linux-arm64 ./cmd/server/main.go
+        
+    - name: Build Windows AMD64 binary
+      run: |
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ github.event.inputs.version }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-windows.exe ./cmd/server/main.go
+        
+    - name: Build macOS AMD64 binary
+      run: |
+        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ github.event.inputs.version }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-macos-amd64 ./cmd/server/main.go
+        
+    - name: Build macOS ARM64 binary
+      run: |
+        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X paperspace-stable-diffusion-station/internal/version.Version=${{ github.event.inputs.version }} -X paperspace-stable-diffusion-station/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X paperspace-stable-diffusion-station/internal/version.GitCommit=${{ steps.get_commit.outputs.COMMIT }}" -o bin/server-macos-arm64 ./cmd/server/main.go
+        
+    - name: Create release archive
+      run: |
+        mkdir -p release
+        cp bin/server-linux release/
+        cp bin/server-linux-arm64 release/
+        cp bin/server-windows.exe release/
+        cp bin/server-macos-amd64 release/
+        cp bin/server-macos-arm64 release/
+        cp -r web/dist release/web/
+        cp README.md release/
+        cp LICENSE release/
+        cp env.example release/
+        
+        # Create archives for each platform
+        tar -czf paperspace-stable-diffusion-station-linux-amd64.tar.gz -C release server-linux web README.md LICENSE env.example
+        tar -czf paperspace-stable-diffusion-station-linux-arm64.tar.gz -C release server-linux-arm64 web README.md LICENSE env.example
+        zip -r paperspace-stable-diffusion-station-windows-amd64.zip release/server-windows.exe release/web release/README.md release/LICENSE release/env.example
+        tar -czf paperspace-stable-diffusion-station-macos-amd64.tar.gz -C release server-macos-amd64 web README.md LICENSE env.example
+        tar -czf paperspace-stable-diffusion-station-macos-arm64.tar.gz -C release server-macos-arm64 web README.md LICENSE env.example
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        name: Release ${{ github.event.inputs.version }}
+        body: |
+          ## Paperspace Stable Diffusion Station ${{ github.event.inputs.version }}
+          
+          ### ダウンロード
+          
+          **Linux (AMD64)**
+          - `paperspace-stable-diffusion-station-linux-amd64.tar.gz`
+          
+          **Linux (ARM64)**
+          - `paperspace-stable-diffusion-station-linux-arm64.tar.gz`
+          
+          **Windows (AMD64)**
+          - `paperspace-stable-diffusion-station-windows-amd64.zip`
+          
+          **macOS (AMD64)**
+          - `paperspace-stable-diffusion-station-macos-amd64.tar.gz`
+          
+          **macOS (ARM64)**
+          - `paperspace-stable-diffusion-station-macos-arm64.tar.gz`
+          
+          ### 使用方法
+          
+          1. 適切なアーカイブをダウンロード
+          2. 解凍
+          3. 実行権限を付与（Linux/macOS）: `chmod +x server-*`
+          4. 実行: `./server-linux` または `./server-linux-arm64`
+          
+          ### 設定
+          
+          `env.example` を `env` にコピーして設定をカスタマイズしてください。
+        files: |
+          paperspace-stable-diffusion-station-linux-amd64.tar.gz
+          paperspace-stable-diffusion-station-linux-arm64.tar.gz
+          paperspace-stable-diffusion-station-windows-amd64.zip
+          paperspace-stable-diffusion-station-macos-amd64.tar.gz
+          paperspace-stable-diffusion-station-macos-arm64.tar.gz
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

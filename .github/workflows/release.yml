@@ -1,9 +1,8 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'  # v1.0.0, v1.2.3 などのタグパターン
+  release:
+    types: [published]  # リリースが公開された時に実行
 
 jobs:
   build-and-release:
@@ -35,7 +34,7 @@ jobs:
         cd web
         npm run build
         
-    - name: Get version from tag
+    - name: Get version from release
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
@@ -83,48 +82,52 @@ jobs:
         tar -czf paperspace-stable-diffusion-station-macos-amd64.tar.gz -C release server-macos-amd64 web README.md LICENSE env.example
         tar -czf paperspace-stable-diffusion-station-macos-arm64.tar.gz -C release server-macos-arm64 web README.md LICENSE env.example
         
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ steps.get_version.outputs.VERSION }}
-        body: |
-          ## Paperspace Stable Diffusion Station ${{ steps.get_version.outputs.VERSION }}
-          
-          ### ダウンロード
-          
-          **Linux (AMD64)**
-          - `paperspace-stable-diffusion-station-linux-amd64.tar.gz`
-          
-          **Linux (ARM64)**
-          - `paperspace-stable-diffusion-station-linux-arm64.tar.gz`
-          
-          **Windows (AMD64)**
-          - `paperspace-stable-diffusion-station-windows-amd64.zip`
-          
-          **macOS (AMD64)**
-          - `paperspace-stable-diffusion-station-macos-amd64.tar.gz`
-          
-          **macOS (ARM64)**
-          - `paperspace-stable-diffusion-station-macos-arm64.tar.gz`
-          
-          ### 使用方法
-          
-          1. 適切なアーカイブをダウンロード
-          2. 解凍
-          3. 実行権限を付与（Linux/macOS）: `chmod +x server-*`
-          4. 実行: `./server-linux` または `./server-linux-arm64`
-          
-          ### 設定
-          
-          `env.example` を `env` にコピーして設定をカスタマイズしてください。
-        files: |
-          paperspace-stable-diffusion-station-linux-amd64.tar.gz
-          paperspace-stable-diffusion-station-linux-arm64.tar.gz
-          paperspace-stable-diffusion-station-windows-amd64.zip
-          paperspace-stable-diffusion-station-macos-amd64.tar.gz
-          paperspace-stable-diffusion-station-macos-arm64.tar.gz
-        draft: false
-        prerelease: false
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: paperspace-stable-diffusion-station-linux-amd64.tar.gz
+        asset_name: paperspace-stable-diffusion-station-linux-amd64.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload Linux ARM64 Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: paperspace-stable-diffusion-station-linux-arm64.tar.gz
+        asset_name: paperspace-stable-diffusion-station-linux-arm64.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload Windows Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: paperspace-stable-diffusion-station-windows-amd64.zip
+        asset_name: paperspace-stable-diffusion-station-windows-amd64.zip
+        asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload macOS AMD64 Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: paperspace-stable-diffusion-station-macos-amd64.tar.gz
+        asset_name: paperspace-stable-diffusion-station-macos-amd64.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload macOS ARM64 Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: paperspace-stable-diffusion-station-macos-arm64.tar.gz
+        asset_name: paperspace-stable-diffusion-station-macos-arm64.tar.gz
+        asset_content_type: application/gzip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
